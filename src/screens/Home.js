@@ -82,6 +82,29 @@ export default function Home() {
           ))}
         </View>
 
+        {/* Calendário */}
+        <View style={styles.calendarContainer}>
+          <Calendar
+            monthFormat={"MMMM yyyy"}
+            hideExtraDays={false}
+            markedDates={{
+              [dataSelecionada]: {
+                selected: true,
+                selectedColor: "#CC1E1E",
+                selectedTextColor: "white",
+              },
+            }}
+            onDayPress={(day) => setDataSelecionada(day.dateString)}
+            theme={{
+              textMonthFontWeight: "bold",
+              textMonthFontSize: 18,
+              arrowColor: "#CC1E1E",
+              textDayFontWeight: "500",
+              todayTextColor: "#CC1E1E",
+            }}
+          />
+        </View>
+
         {/* Lista de Salas Filtradas */}
         <View style={styles.roomsGrid}>
           {salasFiltradas.length > 0 ? (
@@ -110,28 +133,7 @@ export default function Home() {
           )}
         </View>
 
-        {/* Calendário */}
-        <View style={styles.calendarContainer}>
-          <Calendar
-            monthFormat={"MMMM yyyy"}
-            hideExtraDays={false}
-            markedDates={{
-              [dataSelecionada]: {
-                selected: true,
-                selectedColor: "#CC1E1E",
-                selectedTextColor: "white",
-              },
-            }}
-            onDayPress={(day) => setDataSelecionada(day.dateString)}
-            theme={{
-              textMonthFontWeight: "bold",
-              textMonthFontSize: 18,
-              arrowColor: "#CC1E1E",
-              textDayFontWeight: "500",
-              todayTextColor: "#CC1E1E",
-            }}
-          />
-        </View>
+        
       </ScrollView>
     </SafeAreaView>
   );

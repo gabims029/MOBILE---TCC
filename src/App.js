@@ -10,7 +10,6 @@ import Perfil from "./screens/Perfil";
 import Layout from "./components/MyLayout";
 
 
-
 const Stack = createStackNavigator();
 
 export default function App() {
