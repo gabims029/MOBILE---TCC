@@ -29,6 +29,7 @@ const Perfil = () => {
   useEffect(() => {
     const getSecureData = async () => {
       const value = await SecureStore.getItemAsync("id");
+      console.log("ID recuperado do SecureStore:", value);
       setIdUsuario(value);
       if (value) {
         carregarDadosUsuario(value);

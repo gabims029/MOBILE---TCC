@@ -23,10 +23,10 @@ export default function Login() {
 
   const navigation = useNavigation();
 
-  const saveInfos = async (token, id_usuario) => {
+  const saveInfos = async (token, id_user) => {
     try {
       await SecureStore.setItemAsync("token", token);
-      await SecureStore.setItemAsync("id", id_usuario.toString());
+      await SecureStore.setItemAsync("id", id_user.toString());
     } catch (error) {
       console.log("Erro ao salvar no SecureStore:", error);
     }
@@ -34,9 +34,9 @@ export default function Login() {
   
   const handleLogin = async () => {
     try {
-      //const response = await api.postLogin(user);
-      //await saveInfos(response.data.token, response.data.user.id_usuario);
-      //Alert.alert("Sucesso", response.data.message);
+      const response = await api.postLogin(user);
+      await saveInfos(response.data.token, response.data.user.id_user);
+      Alert.alert("Sucesso", response.data.message);
       navigation.navigate("Home");
     } catch (error) {
       console.log("Erro no login:", error);
