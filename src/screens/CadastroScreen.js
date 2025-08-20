@@ -12,6 +12,7 @@ import api from "../axios/axios";
 import Logo from "../../assets/logosenai.png";
 import { Ionicons } from "@expo/vector-icons";
 import {useNavigation} from "@react-navigation/native"
+import { Picker } from "@react-native-picker/picker";
 
 export default function Cadastro() {
   const [user, setUser] = useState({
@@ -19,6 +20,7 @@ export default function Cadastro() {
     email: "",
     cpf: "",
     senha: "",
+    tipo: "",
     showPassord: true,
   });
 
@@ -28,7 +30,7 @@ export default function Cadastro() {
     await api.postCadastro(user).then(
       (response) => {
         Alert.alert("OK", response.data.message);
-        navigation.navigate("Login");
+        navigation.navigate("Home");
       },
       (error) => {
         Alert.alert("Erro", error.response.data.error);
@@ -96,20 +98,29 @@ export default function Cadastro() {
               color="gray"
             />
           </TouchableOpacity>
+
         </View>
+
+        <View style={styles.pickerContainer}>
+  <Picker
+    selectedValue={user.tipo}
+    onValueChange={(value) => setUser({ ...user, tipo: value })}
+    style={styles.picker}
+    dropdownIconColor="#888" //setinha
+  >
+    <Picker.Item label="Tipo" value="" color="#888" />
+    <Picker.Item label="Administrador" value="adm" />
+    <Picker.Item label="Comum" value="comum" />
+  </Picker>
+</View>
+
+
         <TouchableOpacity
           onPress={handleCadastro}
           style={styles.cadastrarButton}
         >
           <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
         </TouchableOpacity>
-
-        <View style={styles.loginContainer}>
-          <Text style={styles.loginText}>Já tem cadastro? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-            <Text style={styles.loginLinkText}>Fazer login</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </View>
   );
@@ -210,4 +221,21 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
   },
+  pickerContainer: {
+  width: "100%",
+  height: 45,
+  backgroundColor: "white",
+  borderRadius: 25,
+  marginVertical: 8,
+  paddingHorizontal: 15,
+  justifyContent: "center",
+},
+
+picker: {
+  width: "100%",
+  height: "130%",
+  color: "#888",
+  fontSize: "5",
+},
+
 });
