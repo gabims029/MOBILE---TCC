@@ -38,11 +38,7 @@ export default function Menu({ visible, onClose }) {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => handleNavigate("MinhasReservas")}>
-            <Text style={styles.item}>Consultar Reservas</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => handleNavigate("Cadastro")}>
-            <Text style={styles.item}>Cadastrar Usuário</Text>
+            <Text style={styles.item}>Minhas Reservas</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={abrirModal}>
