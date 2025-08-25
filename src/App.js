@@ -29,7 +29,7 @@ export default function App() {
         <Stack.Screen
           name="Cadastro"
           component={() => (
-            <Layout header={1}>
+            <Layout>
               <Cadastro/>
             </Layout>
           )}

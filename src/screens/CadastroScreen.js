@@ -13,7 +13,6 @@ import Logo from "../../assets/logosenai.png";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
-import Header from "../components/Header"; // importa seu header
 
 export default function Cadastro() {
   const [user, setUser] = useState({
@@ -39,9 +38,7 @@ export default function Cadastro() {
     );
   }
 
-  return (
-    <View style={{ flex: 1, backgroundColor: "#FFF5F5" }}>
-      <Header />
+  return (      
       <View style={styles.content}>
         <View style={styles.cadastroCard}>
           <View style={styles.logoContainer}>
@@ -118,7 +115,6 @@ export default function Cadastro() {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
   );
 }
 
