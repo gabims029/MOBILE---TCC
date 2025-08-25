@@ -29,16 +29,20 @@ export default function Menu({ visible, onClose }) {
     <Modal transparent={true} visible={visible} animationType="slide">
       <View style={styles.overlay}>
         <View style={styles.menu}>
-          <TouchableOpacity onPress={() => handleNavigate("Perfil")}>
-            <Text style={styles.item}>Perfil</Text>
-          </TouchableOpacity>
-
           <TouchableOpacity onPress={() => handleNavigate("Home")}>
             <Text style={styles.item}>Home</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity onPress={() => handleNavigate("Perfil")}>
+            <Text style={styles.item}>Meu Perfil</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity onPress={() => handleNavigate("MinhasReservas")}>
-            <Text style={styles.item}>Minhas Reservas</Text>
+            <Text style={styles.item}>Consultar Reservas</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => handleNavigate("Cadastro")}>
+            <Text style={styles.item}>Cadastrar Usuário</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={abrirModal}>
