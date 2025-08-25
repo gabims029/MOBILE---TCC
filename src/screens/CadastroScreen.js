@@ -11,8 +11,9 @@ import {
 import api from "../axios/axios";
 import Logo from "../../assets/logosenai.png";
 import { Ionicons } from "@expo/vector-icons";
-import {useNavigation} from "@react-navigation/native"
+import { useNavigation } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
+import Menu from "../components/Menu"; // importa o menu lateral
 
 export default function Cadastro() {
   const [user, setUser] = useState({
@@ -24,7 +25,8 @@ export default function Cadastro() {
     showPassord: true,
   });
 
-  const navigation = useNavigation()
+  const [menuVisible, setMenuVisible] = useState(false); // controla visibilidade do menu
+  const navigation = useNavigation();
 
   async function handleCadastro() {
     await api.postCadastro(user).then(
@@ -33,14 +35,23 @@ export default function Cadastro() {
         navigation.navigate("Home");
       },
       (error) => {
-        Alert.alert("Erro", error.response.data.error);
+        Alert.alert("Erro", error.response?.data?.error || "Erro ao cadastrar");
       }
     );
   }
 
   return (
     <View style={styles.content}>
+      {/* Botão para abrir o menu */}
+      <TouchableOpacity
+        style={styles.menuButton}
+        onPress={() => setMenuVisible(true)}
+      >
+        <Ionicons name="menu" size={32} color="white" />
+      </TouchableOpacity>
+
       <View style={styles.cadastroCard}>
+        {/* LOGO */}
         <View style={styles.logoContainer}>
           <View style={styles.logoWrapper}>
             <Image
@@ -51,22 +62,19 @@ export default function Cadastro() {
           </View>
         </View>
 
+        {/* FORMULÁRIO */}
         <TextInput
           style={styles.input}
           placeholder="Nome"
           value={user.nome}
-          onChangeText={(value) => {
-            setUser({ ...user, nome: value });
-          }}
+          onChangeText={(value) => setUser({ ...user, nome: value })}
         />
 
         <TextInput
           style={styles.input}
           placeholder="E-mail"
           value={user.email}
-          onChangeText={(value) => {
-            setUser({ ...user, email: value });
-          }}
+          onChangeText={(value) => setUser({ ...user, email: value })}
         />
 
         <TextInput
@@ -74,9 +82,7 @@ export default function Cadastro() {
           placeholder="CPF"
           value={user.cpf}
           maxLength={11}
-          onChangeText={(value) => {
-            setUser({ ...user, cpf: value });
-          }}
+          onChangeText={(value) => setUser({ ...user, cpf: value })}
         />
 
         <View style={styles.passwordContainer}>
@@ -85,12 +91,12 @@ export default function Cadastro() {
             placeholder="Senha"
             value={user.senha}
             secureTextEntry={user.showPassord}
-            onChangeText={(value) => {
-              setUser({ ...user, senha: value });
-            }}
-          ></TextInput>
+            onChangeText={(value) => setUser({ ...user, senha: value })}
+          />
           <TouchableOpacity
-            onPress={() => setUser({ ...user, showPassord: !user.showPassord })}
+            onPress={() =>
+              setUser({ ...user, showPassord: !user.showPassord })
+            }
           >
             <Ionicons
               name={user.showPassord ? "eye-off-outline" : "eye-outline"}
@@ -98,22 +104,20 @@ export default function Cadastro() {
               color="gray"
             />
           </TouchableOpacity>
-
         </View>
 
         <View style={styles.pickerContainer}>
-  <Picker
-    selectedValue={user.tipo}
-    onValueChange={(value) => setUser({ ...user, tipo: value })}
-    style={styles.picker}
-    dropdownIconColor="#888" //setinha
-  >
-    <Picker.Item label="Tipo" value="" color="#888" />
-    <Picker.Item label="Administrador" value="adm" />
-    <Picker.Item label="Comum" value="comum" />
-  </Picker>
-</View>
-
+          <Picker
+            selectedValue={user.tipo}
+            onValueChange={(value) => setUser({ ...user, tipo: value })}
+            style={styles.picker}
+            dropdownIconColor="#888"
+          >
+            <Picker.Item label="Tipo" value="" color="#888" />
+            <Picker.Item label="Administrador" value="adm" />
+            <Picker.Item label="Comum" value="comum" />
+          </Picker>
+        </View>
 
         <TouchableOpacity
           onPress={handleCadastro}
@@ -122,6 +126,9 @@ export default function Cadastro() {
           <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
         </TouchableOpacity>
       </View>
+
+      {/* MENU LATERAL */}
+      <Menu visible={menuVisible} onClose={() => setMenuVisible(false)} />
     </View>
   );
 }
@@ -132,6 +139,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
+    backgroundColor: "#FCECEC",
+  },
+  menuButton: {
+    position: "absolute",
+    top: 50,
+    left: 30,
+    zIndex: 10,
   },
   cadastroCard: {
     backgroundColor: "#CC1E1E",
@@ -139,6 +153,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     alignItems: "center",
+    marginTop: 80,
   },
   logoContainer: {
     justifyContent: "center",
@@ -151,23 +166,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-  },
-  logoText: {
-    color: "white",
-    fontSize: 36,
-    fontWeight: "bold",
-    letterSpacing: 1,
-    paddingHorizontal: 10,
-    textAlign: "center",
-  },
-  logoLines: {
-    height: 30,
-    justifyContent: "space-between",
-  },
-  logoLine: {
-    width: 15,
-    height: 2,
-    backgroundColor: "white",
   },
   input: {
     width: "100%",
@@ -191,20 +189,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  loginContainer: {
-    flexDirection: "row",
-    marginTop: 15,
-    alignItems: "center",
-  },
-  loginText: {
-    color: "white",
-    fontSize: 14,
-  },
-  loginLinkText: {
-    color: "#FF3F3F",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
   passwordContainer: {
     width: "100%",
     height: 45,
@@ -214,7 +198,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     flexDirection: "row",
     alignItems: "center",
-    width: "100%",
     paddingRight: 10,
   },
   passwordInput: {
@@ -222,20 +205,17 @@ const styles = StyleSheet.create({
     height: 40,
   },
   pickerContainer: {
-  width: "100%",
-  height: 45,
-  backgroundColor: "white",
-  borderRadius: 25,
-  marginVertical: 8,
-  paddingHorizontal: 15,
-  justifyContent: "center",
-},
-
-picker: {
-  width: "100%",
-  height: "130%",
-  color: "#888",
-  fontSize: "5",
-},
-
+    width: "100%",
+    height: 45,
+    backgroundColor: "white",
+    borderRadius: 25,
+    marginVertical: 8,
+    paddingHorizontal: 15,
+    justifyContent: "center",
+  },
+  picker: {
+    width: "100%",
+    height: "130%",
+    color: "#888",
+  },
 });

@@ -38,6 +38,10 @@ export default function Menu({ visible, onClose }) {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => handleNavigate("MinhasReservas")}>
+            <Text style={styles.item}>Minhas Reservas</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => handleNavigate("TodasReservas")}>
             <Text style={styles.item}>Consultar Reservas</Text>
           </TouchableOpacity>
 
