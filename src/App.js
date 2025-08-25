@@ -8,6 +8,8 @@ import Reserva from "./screens/ReservaScreen";
 import MinhasReservas from "./screens/MinhasReservas";
 import Perfil from "./screens/Perfil";
 import Layout from "./components/MyLayout";
+import CriarSala from "./screens/CriarSala";
+import ListUser from "./screens/ListUser";
 import TodasReservas from "./screens/TodasReservas";
 
 
@@ -28,7 +30,7 @@ export default function App() {
         <Stack.Screen
           name="Cadastro"
           component={() => (
-            <Layout header={1}>
+            <Layout>
               <Cadastro/>
             </Layout>
           )}
@@ -37,7 +39,10 @@ export default function App() {
         <Stack.Screen name="Reserva" component={(props)=><Layout><Reserva {...props} /></Layout>}/>
         <Stack.Screen name="MinhasReservas" component={(props)=><Layout><MinhasReservas {...props} /></Layout>}/>
         <Stack.Screen name="Perfil" component={(props)=><Layout><Perfil {...props} /></Layout>}/>
+        <Stack.Screen name="CriarSala" component={(props)=><Layout><CriarSala {...props} /></Layout>}/>
+        <Stack.Screen name="ListUser" component={(props)=><Layout><ListUser {...props} /></Layout>}/>
         <Stack.Screen name="TodasReservas" component={(props)=><Layout><TodasReservas {...props} /></Layout>}/>
+
       </Stack.Navigator>
     </NavigationContainer>
   );

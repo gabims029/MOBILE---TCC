@@ -26,6 +26,7 @@ export default function Cadastro() {
   });
 
   const [menuVisible, setMenuVisible] = useState(false); // controla visibilidade do menu
+
   const navigation = useNavigation();
 
   async function handleCadastro() {
@@ -40,9 +41,34 @@ export default function Cadastro() {
     );
   }
 
+  return (      
+      <View style={styles.content}>
+        <View style={styles.cadastroCard}>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoWrapper}>
+              <Image
+                source={Logo}
+                resizeMode="contain"
+                style={{ width: "100%", height: undefined, aspectRatio: 4 }}
+              />
+            </View>
+          </View>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Nome"
+            value={user.nome}
+            onChangeText={(value) => setUser({ ...user, nome: value })}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="E-mail"
+            value={user.email}
+            onChangeText={(value) => setUser({ ...user, email: value })}
+          />
   return (
     <View style={styles.content}>
-      {/* Botão para abrir o menu */}
       <TouchableOpacity
         style={styles.menuButton}
         onPress={() => setMenuVisible(true)}
@@ -51,7 +77,6 @@ export default function Cadastro() {
       </TouchableOpacity>
 
       <View style={styles.cadastroCard}>
-        {/* LOGO */}
         <View style={styles.logoContainer}>
           <View style={styles.logoWrapper}>
             <Image
@@ -85,8 +110,51 @@ export default function Cadastro() {
           onChangeText={(value) => setUser({ ...user, cpf: value })}
         />
 
-        <View style={styles.passwordContainer}>
           <TextInput
+            style={styles.input}
+            placeholder="CPF"
+            value={user.cpf}
+            maxLength={11}
+            onChangeText={(value) => setUser({ ...user, cpf: value })}
+          />
+
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Senha"
+              value={user.senha}
+              secureTextEntry={user.showPassord}
+              onChangeText={(value) => setUser({ ...user, senha: value })}
+            />
+            <TouchableOpacity
+              onPress={() =>
+                setUser({ ...user, showPassord: !user.showPassord })
+              }
+            >
+              <Ionicons
+                name={user.showPassord ? "eye-off-outline" : "eye-outline"}
+                size={24}
+                color="gray"
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={user.tipo}
+              onValueChange={(value) => setUser({ ...user, tipo: value })}
+              style={styles.picker}
+              dropdownIconColor="#888"
+            >
+              <Picker.Item label="Tipo" value="" color="#888" />
+              <Picker.Item label="Administrador" value="adm" />
+              <Picker.Item label="Comum" value="comum" />
+            </Picker>
+          </View>
+
+          <TouchableOpacity
+            onPress={handleCadastro}
+            style={styles.cadastrarButton}
             style={styles.passwordInput}
             placeholder="Senha"
             value={user.senha}
@@ -97,14 +165,11 @@ export default function Cadastro() {
             onPress={() =>
               setUser({ ...user, showPassord: !user.showPassord })
             }
-          >
-            <Ionicons
-              name={user.showPassord ? "eye-off-outline" : "eye-outline"}
-              size={24}
-              color="gray"
-            />
+       >
+            <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
           </TouchableOpacity>
         </View>
+      </View>
 
         <View style={styles.pickerContainer}>
           <Picker
@@ -126,8 +191,6 @@ export default function Cadastro() {
           <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
         </TouchableOpacity>
       </View>
-
-      {/* MENU LATERAL */}
       <Menu visible={menuVisible} onClose={() => setMenuVisible(false)} />
     </View>
   );
