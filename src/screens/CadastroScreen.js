@@ -13,6 +13,7 @@ import Logo from "../../assets/logosenai.png";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
+import Menu from "../components/Menu"; // importa o menu lateral
 
 export default function Cadastro() {
   const [user, setUser] = useState({
@@ -24,6 +25,8 @@ export default function Cadastro() {
     showPassord: true,
   });
 
+  const [menuVisible, setMenuVisible] = useState(false); // controla visibilidade do menu
+
   const navigation = useNavigation();
 
   async function handleCadastro() {
@@ -33,7 +36,7 @@ export default function Cadastro() {
         navigation.navigate("Home");
       },
       (error) => {
-        Alert.alert("Erro", error.response.data.error);
+        Alert.alert("Erro", error.response?.data?.error || "Erro ao cadastrar");
       }
     );
   }
@@ -64,6 +67,48 @@ export default function Cadastro() {
             value={user.email}
             onChangeText={(value) => setUser({ ...user, email: value })}
           />
+  return (
+    <View style={styles.content}>
+      <TouchableOpacity
+        style={styles.menuButton}
+        onPress={() => setMenuVisible(true)}
+      >
+        <Ionicons name="menu" size={32} color="white" />
+      </TouchableOpacity>
+
+      <View style={styles.cadastroCard}>
+        <View style={styles.logoContainer}>
+          <View style={styles.logoWrapper}>
+            <Image
+              source={Logo}
+              resizeMode="contain"
+              style={{ width: "100%", height: undefined, aspectRatio: 4 }}
+            />
+          </View>
+        </View>
+
+        {/* FORMULÁRIO */}
+        <TextInput
+          style={styles.input}
+          placeholder="Nome"
+          value={user.nome}
+          onChangeText={(value) => setUser({ ...user, nome: value })}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="E-mail"
+          value={user.email}
+          onChangeText={(value) => setUser({ ...user, email: value })}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="CPF"
+          value={user.cpf}
+          maxLength={11}
+          onChangeText={(value) => setUser({ ...user, cpf: value })}
+        />
 
           <TextInput
             style={styles.input}
@@ -110,11 +155,44 @@ export default function Cadastro() {
           <TouchableOpacity
             onPress={handleCadastro}
             style={styles.cadastrarButton}
-          >
+            style={styles.passwordInput}
+            placeholder="Senha"
+            value={user.senha}
+            secureTextEntry={user.showPassord}
+            onChangeText={(value) => setUser({ ...user, senha: value })}
+          />
+          <TouchableOpacity
+            onPress={() =>
+              setUser({ ...user, showPassord: !user.showPassord })
+            }
+       >
             <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
           </TouchableOpacity>
         </View>
       </View>
+
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={user.tipo}
+            onValueChange={(value) => setUser({ ...user, tipo: value })}
+            style={styles.picker}
+            dropdownIconColor="#888"
+          >
+            <Picker.Item label="Tipo" value="" color="#888" />
+            <Picker.Item label="Administrador" value="adm" />
+            <Picker.Item label="Comum" value="comum" />
+          </Picker>
+        </View>
+
+        <TouchableOpacity
+          onPress={handleCadastro}
+          style={styles.cadastrarButton}
+        >
+          <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
+        </TouchableOpacity>
+      </View>
+      <Menu visible={menuVisible} onClose={() => setMenuVisible(false)} />
+    </View>
   );
 }
 
@@ -124,6 +202,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
+    backgroundColor: "#FCECEC",
+  },
+  menuButton: {
+    position: "absolute",
+    top: 50,
+    left: 30,
+    zIndex: 10,
   },
   cadastroCard: {
     backgroundColor: "#CC1E1E",
@@ -131,6 +216,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     alignItems: "center",
+    marginTop: 80,
   },
   logoContainer: {
     justifyContent: "center",

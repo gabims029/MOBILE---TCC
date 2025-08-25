@@ -29,6 +29,7 @@ const sheets = {
     updateUser:(user) => api.put(`/user`, user),
     deleteReserva: (id) => api.delete(`/reserva/${id}`),
     getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
+    getTodasReservas: () => api.get(`/reserva`),   
     deleteUser: (id) => api.delete(`/user/${id}`),
 }
 export default sheets;
