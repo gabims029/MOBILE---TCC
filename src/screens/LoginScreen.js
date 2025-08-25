@@ -34,6 +34,7 @@ export default function Login() {
   
   const handleLogin = async () => {
     try {
+      console.log("Payload enviado:", user);
       const response = await api.postLogin(user);
       await saveInfos(response.data.token, response.data.user.id_user);
       Alert.alert("Sucesso", response.data.message);
