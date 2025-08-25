@@ -45,6 +45,10 @@ export default function Menu({ visible, onClose }) {
             <Text style={styles.item}>Cadastrar Usuário</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity onPress={() => handleNavigate("VisualizarUsuario")}>
+            <Text style={styles.item}>Visualizar usuario</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity onPress={abrirModal}>
             <Text style={styles.item}>Sair</Text>
           </TouchableOpacity>
