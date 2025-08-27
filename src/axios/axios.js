@@ -22,6 +22,7 @@ api.interceptors.request.use(
 const sheets = {
     postLogin:(user) => api.post("/user/login/",user),
     postCadastro:(user) => api.post("User/",user),
+    postSalas:(sala) => api.post("/sala/", sala),
     getSalas:(sala) => api.get("/sala", sala),
     getHorarios: ({ id_sala, data }) => api.get(`/reserva/horarios/${id_sala}/${data}`),
     confirmarReserva:(reserva) => api.post("reserva", reserva),

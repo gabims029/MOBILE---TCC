@@ -8,34 +8,31 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import api from "../axios/axios";
+import api from "../axios/axios"; // já deve estar configurado
 import Logo from "../../assets/logosenai.png";
-import { Ionicons } from "@expo/vector-icons";
-import {useNavigation} from "@react-navigation/native"
-import { Picker } from "@react-native-picker/picker";
+import { useNavigation } from "@react-navigation/native";
 
-export default function Cadastro() {
-  const [user, setUser] = useState({
-    nome: "",
-    email: "",
-    cpf: "",
-    senha: "",
-    tipo: "",
-    showPassord: true,
+export default function CriarSala() {
+  const [sala, setSala] = useState({
+    numero: "",
+    descricao: "",
+    capacidade: "",
+    bloco: "",
   });
 
-  const navigation = useNavigation()
+  const navigation = useNavigation();
 
-  async function handleCadastro() {
-    await api.postCadastro(user).then(
-      (response) => {
-        Alert.alert("OK", response.data.message);
-        navigation.navigate("Home");
-      },
-      (error) => {
-        Alert.alert("Erro", error.response.data.error);
-      }
-    );
+  async function handleCriarSala() {
+    try {
+      const response = await api.post("/sala", sala);
+      Alert.alert("Sucesso", response.data.message);
+      navigation.goBack(); // volta para a tela anterior
+    } catch (error) {
+      Alert.alert(
+        "Erro",
+        error.response?.data?.error || "Erro ao cadastrar sala"
+      );
+    }
   }
 
   return (
@@ -53,73 +50,39 @@ export default function Cadastro() {
 
         <TextInput
           style={styles.input}
-          placeholder="Nome"
-          value={user.nome}
-          onChangeText={(value) => {
-            setUser({ ...user, nome: value });
-          }}
+          placeholder="Número da Sala"
+          value={sala.numero}
+          keyboardType="numeric"
+          onChangeText={(value) => setSala({ ...sala, numero: value })}
         />
 
         <TextInput
           style={styles.input}
-          placeholder="E-mail"
-          value={user.email}
-          onChangeText={(value) => {
-            setUser({ ...user, email: value });
-          }}
+          placeholder="Descrição"
+          value={sala.descricao}
+          onChangeText={(value) => setSala({ ...sala, descricao: value })}
         />
 
         <TextInput
           style={styles.input}
-          placeholder="CPF"
-          value={user.cpf}
-          maxLength={11}
-          onChangeText={(value) => {
-            setUser({ ...user, cpf: value });
-          }}
+          placeholder="Capacidade"
+          value={sala.capacidade}
+          keyboardType="numeric"
+          onChangeText={(value) => setSala({ ...sala, capacidade: value })}
         />
 
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={styles.passwordInput}
-            placeholder="Senha"
-            value={user.senha}
-            secureTextEntry={user.showPassord}
-            onChangeText={(value) => {
-              setUser({ ...user, senha: value });
-            }}
-          ></TextInput>
-          <TouchableOpacity
-            onPress={() => setUser({ ...user, showPassord: !user.showPassord })}
-          >
-            <Ionicons
-              name={user.showPassord ? "eye-off-outline" : "eye-outline"}
-              size={24}
-              color="gray"
-            />
-          </TouchableOpacity>
-
-        </View>
-
-        <View style={styles.pickerContainer}>
-  <Picker
-    selectedValue={user.tipo}
-    onValueChange={(value) => setUser({ ...user, tipo: value })}
-    style={styles.picker}
-    dropdownIconColor="#888" //setinha
-  >
-    <Picker.Item label="Tipo" value="" color="#888" />
-    <Picker.Item label="Administrador" value="adm" />
-    <Picker.Item label="Comum" value="comum" />
-  </Picker>
-</View>
-
+        <TextInput
+          style={styles.input}
+          placeholder="Bloco"
+          value={sala.bloco}
+          onChangeText={(value) => setSala({ ...sala, bloco: value })}
+        />
 
         <TouchableOpacity
-          onPress={handleCadastro}
+          onPress={handleCriarSala}
           style={styles.cadastrarButton}
         >
-          <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
+          <Text style={styles.cadastrarButtonText}>Cadastrar Sala</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -152,23 +115,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
   },
-  logoText: {
-    color: "white",
-    fontSize: 36,
-    fontWeight: "bold",
-    letterSpacing: 1,
-    paddingHorizontal: 10,
-    textAlign: "center",
-  },
-  logoLines: {
-    height: 30,
-    justifyContent: "space-between",
-  },
-  logoLine: {
-    width: 15,
-    height: 2,
-    backgroundColor: "white",
-  },
   input: {
     width: "100%",
     height: 45,
@@ -191,51 +137,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  loginContainer: {
-    flexDirection: "row",
-    marginTop: 15,
-    alignItems: "center",
-  },
-  loginText: {
-    color: "white",
-    fontSize: 14,
-  },
-  loginLinkText: {
-    color: "#FF3F3F",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  passwordContainer: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "white",
-    borderRadius: 25,
-    marginVertical: 8,
-    paddingHorizontal: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    paddingRight: 10,
-  },
-  passwordInput: {
-    flex: 1,
-    height: 40,
-  },
-  pickerContainer: {
-  width: "100%",
-  height: 45,
-  backgroundColor: "white",
-  borderRadius: 25,
-  marginVertical: 8,
-  paddingHorizontal: 15,
-  justifyContent: "center",
-},
-
-picker: {
-  width: "100%",
-  height: "130%",
-  color: "#888",
-  fontSize: "5",
-},
-
 });
