@@ -9,13 +9,14 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../axios/axios";
-export default function VisualizarUsuario({ navigation }) {
+
+export default function VisualizarUsuario( ) {
   const [usuarios, setUsuarios] = useState([]);
 
   useEffect(() => {
     async function fetchUsuarios() {
       try {
-        const response = await api.get("/usuarios"); 
+        const response = await api.get("/user"); 
         setUsuarios(response.data);
       } catch (error) {
         console.log(error);
