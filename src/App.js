@@ -11,6 +11,7 @@ import Layout from "./components/MyLayout";
 import CriarSala from "./screens/CriarSala";
 import ListUser from "./screens/ListUser";
 import TodasReservas from "./screens/TodasReservas";
+import SalasPorBloco from "./screens/SalasPorBloco";
 
 
 const Stack = createStackNavigator();
@@ -42,6 +43,7 @@ export default function App() {
         <Stack.Screen name="CriarSala" component={(props)=><Layout><CriarSala {...props} /></Layout>}/>
         <Stack.Screen name="ListUser" component={(props)=><Layout><ListUser {...props} /></Layout>}/>
         <Stack.Screen name="TodasReservas" component={(props)=><Layout><TodasReservas {...props} /></Layout>}/>
+        <Stack.Screen name="SalasPorBloco" component={(props)=><Layout><SalasPorBloco {...props} /></Layout>}/>
 
       </Stack.Navigator>
     </NavigationContainer>
