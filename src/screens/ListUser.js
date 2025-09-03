@@ -1,241 +1,86 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
-  Alert,
   StyleSheet,
-  Image,
+  FlatList,
 } from "react-native";
 import api from "../axios/axios";
-import Logo from "../../assets/logosenai.png";
-import { Ionicons } from "@expo/vector-icons";
-import {useNavigation} from "@react-navigation/native"
-import { Picker } from "@react-native-picker/picker";
 
-export default function Cadastro() {
-  const [user, setUser] = useState({
-    nome: "",
-    email: "",
-    cpf: "",
-    senha: "",
-    tipo: "",
-    showPassord: true,
-  });
+const ListaUsuarios = () => {
+  const [usuarios, setUsuarios] = useState([]);
 
-  const navigation = useNavigation()
+  useEffect(() => {
+    carregarUsuarios();
+  }, []);
 
-  async function handleCadastro() {
-    await api.postCadastro(user).then(
-      (response) => {
-        Alert.alert("OK", response.data.message);
-        navigation.navigate("Home");
-      },
-      (error) => {
-        Alert.alert("Erro", error.response.data.error);
-      }
-    );
+  async function carregarUsuarios() {
+    try {
+      const response = await api.get("/usuarios"); // Ajuste se sua rota for diferente
+      setUsuarios(response.data);
+    } catch (error) {
+      console.log("Erro ao carregar usuários:", error);
+    }
   }
+
+  const renderItem = ({ item }) => (
+    <View style={styles.card}>
+      <Text style={styles.text}>{item.email}</Text>
+    </View>
+  );
 
   return (
     <View style={styles.content}>
-      <View style={styles.cadastroCard}>
-        <View style={styles.logoContainer}>
-          <View style={styles.logoWrapper}>
-            <Image
-              source={Logo}
-              resizeMode="contain"
-              style={{ width: "100%", height: undefined, aspectRatio: 4 }}
-            />
-          </View>
-        </View>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Nome"
-          value={user.nome}
-          onChangeText={(value) => {
-            setUser({ ...user, nome: value });
-          }}
+      <View style={styles.container}>
+        <Text style={styles.title}>LISTA DE USUÁRIOS</Text>
+        <FlatList
+          data={usuarios}
+          keyExtractor={(item) => item.id_usuario.toString()}
+          renderItem={renderItem}
+          showsVerticalScrollIndicator={false}
         />
-
-        <TextInput
-          style={styles.input}
-          placeholder="E-mail"
-          value={user.email}
-          onChangeText={(value) => {
-            setUser({ ...user, email: value });
-          }}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="CPF"
-          value={user.cpf}
-          maxLength={11}
-          onChangeText={(value) => {
-            setUser({ ...user, cpf: value });
-          }}
-        />
-
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={styles.passwordInput}
-            placeholder="Senha"
-            value={user.senha}
-            secureTextEntry={user.showPassord}
-            onChangeText={(value) => {
-              setUser({ ...user, senha: value });
-            }}
-          ></TextInput>
-          <TouchableOpacity
-            onPress={() => setUser({ ...user, showPassord: !user.showPassord })}
-          >
-            <Ionicons
-              name={user.showPassord ? "eye-off-outline" : "eye-outline"}
-              size={24}
-              color="gray"
-            />
-          </TouchableOpacity>
-
-        </View>
-
-        <View style={styles.pickerContainer}>
-  <Picker
-    selectedValue={user.tipo}
-    onValueChange={(value) => setUser({ ...user, tipo: value })}
-    style={styles.picker}
-    dropdownIconColor="#888" //setinha
-  >
-    <Picker.Item label="Tipo" value="" color="#888" />
-    <Picker.Item label="Administrador" value="adm" />
-    <Picker.Item label="Comum" value="comum" />
-  </Picker>
-</View>
-
-
-        <TouchableOpacity
-          onPress={handleCadastro}
-          style={styles.cadastrarButton}
-        >
-          <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   content: {
     flex: 1,
+    backgroundColor: "#FCECEC", // fundo rosado claro
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 20,
   },
-  cadastroCard: {
-    backgroundColor: "#CC1E1E",
+  container: {
+    backgroundColor: "#CC1E1E", // vermelho do card
     width: "90%",
-    borderRadius: 10,
-    padding: 20,
-    alignItems: "center",
-  },
-  logoContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 15,
-    width: "100%",
-  },
-  logoWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-  logoText: {
-    color: "white",
-    fontSize: 36,
-    fontWeight: "bold",
-    letterSpacing: 1,
-    paddingHorizontal: 10,
-    textAlign: "center",
-  },
-  logoLines: {
-    height: 30,
-    justifyContent: "space-between",
-  },
-  logoLine: {
-    width: 15,
-    height: 2,
-    backgroundColor: "white",
-  },
-  input: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "white",
-    borderRadius: 25,
-    marginVertical: 8,
+    borderRadius: 0,
+    paddingVertical: 20,
     paddingHorizontal: 15,
-  },
-  cadastrarButton: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "#FF3F3F",
-    borderRadius: 25,
-    marginTop: 15,
-    justifyContent: "center",
     alignItems: "center",
+    height: "95%",
   },
-  cadastrarButtonText: {
+  title: {
     color: "white",
-    fontSize: 16,
+    fontSize: 30,
     fontWeight: "bold",
+    marginBottom: 20,
   },
-  loginContainer: {
-    flexDirection: "row",
-    marginTop: 15,
-    alignItems: "center",
-  },
-  loginText: {
-    color: "white",
-    fontSize: 14,
-  },
-  loginLinkText: {
-    color: "#FF3F3F",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  passwordContainer: {
+  card: {
     width: "100%",
-    height: 45,
     backgroundColor: "white",
-    borderRadius: 25,
-    marginVertical: 8,
+    borderRadius: 20,
+    paddingVertical: 12,
     paddingHorizontal: 15,
-    flexDirection: "row",
+    marginBottom: 12,
     alignItems: "center",
-    width: "100%",
-    paddingRight: 10,
   },
-  passwordInput: {
-    flex: 1,
-    height: 40,
+  text: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "bold",
   },
-  pickerContainer: {
-  width: "100%",
-  height: 45,
-  backgroundColor: "white",
-  borderRadius: 25,
-  marginVertical: 8,
-  paddingHorizontal: 15,
-  justifyContent: "center",
-},
-
-picker: {
-  width: "100%",
-  height: "130%",
-  color: "#888",
-  fontSize: "5",
-},
-
 });
+
+export default ListaUsuarios;
