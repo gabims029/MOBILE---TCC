@@ -11,6 +11,7 @@ import {
 import api from "../axios/axios"; // já deve estar configurado
 import Logo from "../../assets/logosenai.png";
 import { useNavigation } from "@react-navigation/native";
+// AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 export default function CriarSala() {
   const [sala, setSala] = useState({
