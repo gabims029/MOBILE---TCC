@@ -2,14 +2,16 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   FlatList,
+  TouchableOpacity,
 } from "react-native";
-import api from "../axios/axios";
+import api from "../axios/axios"; 
+import { useNavigation } from "@react-navigation/native";
 
 const ListaUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     carregarUsuarios();
@@ -17,26 +19,30 @@ const ListaUsuarios = () => {
 
   async function carregarUsuarios() {
     try {
-      const response = await api.get("/usuarios"); // Ajuste se sua rota for diferente
-      setUsuarios(response.data);
+      const response = await api.getUsuarios();
+      console.log("Resposta da API:", response.data); 
+      setUsuarios(response.data.users); 
     } catch (error) {
       console.log("Erro ao carregar usuários:", error);
     }
   }
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={() => navigation.navigate("PerfilAdmin", { idUsuario: item.id_user })}
+    >
       <Text style={styles.text}>{item.email}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.content}>
       <View style={styles.container}>
-        <Text style={styles.title}>LISTA DE USUÁRIOS</Text>
+        <Text style={styles.title}>USUÁRIOS CADASTRADOS</Text>
         <FlatList
           data={usuarios}
-          keyExtractor={(item) => item.id_usuario.toString()}
+          keyExtractor={(item) => item.id_user.toString()}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
         />
@@ -44,6 +50,7 @@ const ListaUsuarios = () => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   content: {
@@ -53,9 +60,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   container: {
-    backgroundColor: "#CC1E1E", // vermelho do card
+    backgroundColor: "#CC1E1E", // fundo vermelho
     width: "90%",
-    borderRadius: 0,
+    borderRadius: 10,
     paddingVertical: 20,
     paddingHorizontal: 15,
     alignItems: "center",
@@ -63,24 +70,26 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "white",
-    fontSize: 30,
+    fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
+    textAlign: "center",
   },
   card: {
-    width: "100%",
+    width: "200%", 
     backgroundColor: "white",
-    borderRadius: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 15,
+    borderRadius: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 10,
     marginBottom: 12,
-    alignItems: "center",
+    alignSelf: "center", // garante que fique centralizada
   },
   text: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#333",
-    fontWeight: "bold",
-  },
+    textAlign: "center", 
+     },
 });
+
 
 export default ListaUsuarios;

@@ -5,12 +5,11 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function EditarUsuario() {
-  const [cpf, setCpf] = useState("***.***.***-**");
+  const [cpf] = useState("***.***.***-**"); // CPF fixo
   const [email, setEmail] = useState("adriano@docente.senai.br");
   const [senha, setSenha] = useState("******");
 
@@ -24,9 +23,9 @@ export default function EditarUsuario() {
         {/* Campo CPF */}
         <Text style={styles.label}>CPF</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, styles.inputBloqueado]}
           value={cpf}
-          editable={false} // CPF não editável
+          editable={false} // não pode editar
         />
 
         {/* Campo Email */}
@@ -62,7 +61,7 @@ export default function EditarUsuario() {
 const styles = StyleSheet.create({
   content: {
     flex: 1,
-    backgroundColor: "#FCECEC", // fundo rosado claro
+    backgroundColor: "#FCECEC", // fundo rosa claro
     alignItems: "center",
     justifyContent: "center",
   },
@@ -87,14 +86,17 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   input: {
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "white", // igual à imagem
     width: "100%",
     borderRadius: 15,
     padding: 10,
     marginTop: 5,
   },
+  inputBloqueado: {
+    opacity: 0.7, // deixa levemente mais apagado pra mostrar que está bloqueado
+  },
   btnEditar: {
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "white",
     padding: 12,
     borderRadius: 20,
     width: "100%",
@@ -102,7 +104,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   btnDeletar: {
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "white",
     padding: 12,
     borderRadius: 20,
     width: "100%",
