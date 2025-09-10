@@ -18,7 +18,7 @@ export default function Home() {
   const navigation = useNavigation();
   const [salas, setSalas] = useState([]);
   const [idUsuario, setIdUsuario] = useState(null);
-  const [blocoSelecionado, setBlocoSelecionado] = useState("");
+  const [dataSelecionada, setDataSelecionada] = useState("");
 
   useEffect(() => {
     getSalas();
@@ -38,7 +38,6 @@ export default function Home() {
   async function getSalas() {
     await api.getSalas().then(
       (response) => {
-        //console.log(response.data);
         setSalas(response.data.salas);
         getSecureData();
       },
