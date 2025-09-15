@@ -146,7 +146,7 @@ export default function Reserva({ route }) {
           ))}
         </View>
         <TouchableOpacity
-          onPress={() => navigation.navigate("Home")}
+          onPress={() => navigation.navigate("SalasPorBloco")}
           style={styles.voltarButton}
         >
           <Text>Voltar</Text>
