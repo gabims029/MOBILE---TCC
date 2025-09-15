@@ -13,28 +13,84 @@ import ListUser from "./screens/ListUser";
 import TodasReservas from "./screens/TodasReservas";
 import SalasPorBloco from "./screens/SalasPorBloco";
 
-
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login" screenOptions={{headerShown:false}}>
-        <Stack.Screen
-          name="Login"
-          component={() => (
+      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+        
+        <Stack.Screen name="Login">
+          {() => (
             <Layout header={1}>
               <Login />
             </Layout>
           )}
-        />
-        <Stack.Screen
-          name="Cadastro"
-          component={() => (
+        </Stack.Screen>
+
+        <Stack.Screen name="Cadastro">
+          {() => (
             <Layout>
-              <Cadastro/>
+              <Cadastro />
             </Layout>
           )}
+        </Stack.Screen>
+
+        <Stack.Screen name="Home">
+          {() => (
+            <Layout>
+              <Home />
+            </Layout>
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="Reserva">
+          {(props) => (
+            <Layout>
+              <Reserva {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="MinhasReservas">
+          {(props) => (
+            <Layout>
+              <MinhasReservas {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="Perfil">
+          {(props) => (
+            <Layout>
+              <Perfil {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="CriarSala">
+          {(props) => (
+            <Layout>
+              <CriarSala {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="ListUser">
+          {(props) => (
+            <Layout>
+              <ListUser {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="TodasReservas">
+          {(props) => (
+            <Layout>
+              <TodasReservas {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
         />
         <Stack.Screen name="Home" component={()=><Layout><Home/></Layout>} />
         <Stack.Screen name="Reserva" component={(props)=><Layout><Reserva {...props} /></Layout>}/>
