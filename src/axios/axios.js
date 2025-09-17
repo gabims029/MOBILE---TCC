@@ -27,7 +27,7 @@ const sheets = {
   getUser: (id) => api.get(`/user/${id}`),
   updateUser: (user) => api.put("/user", user),
   deleteUser: (id) => api.delete(`/user/${id}`),
-  getUsuarios: () => api.get("/user"), // corrigido! era /usuarios
+  getUsuarios: () => api.get("/user"), 
 
   // Salas
   getSalas: () => api.get("/sala"),

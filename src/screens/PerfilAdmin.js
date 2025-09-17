@@ -88,13 +88,6 @@ const PerfilAdmin = () => {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setModalAtualizarVisible(true)}
-        >
-          <Text style={styles.buttonText}>Editar Perfil</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
           onPress={() => setModalExcluirVisible(true)}
         >
           <Text style={styles.buttonText}>Deletar Perfil</Text>

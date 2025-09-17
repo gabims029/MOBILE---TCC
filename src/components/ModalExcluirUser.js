@@ -7,32 +7,36 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import {useNavigation} from "@react-navigation/native"
-import api from "../axios/axios";
+import { useNavigation } from "@react-navigation/native";
+import sheets from "../axios/axios"; // <<< corrigido
 
 const ModalExcluirUser = ({ visible, usuario, onCancel, onDeleted, onClose }) => {
   useEffect(() => {
     if (usuario) {
-      console.log("Usuário para excluir:", usuario);
+      console.log("Usuário para excluir:", usuario); // <<< debug
     }
   }, [usuario]);
 
   const navigation = useNavigation();
 
   const handleExcluirUser = async () => {
-    const id = usuario?.idUsuario;
+    console.log("Usuário recebido no handle:", usuario); // <<< debug extra
+
+    // ⚠️ Se no console aparecer "id" em vez de "idUsuario", troque aqui
+    const id = usuario?.idUsuario; 
     if (!id) {
       Alert.alert("Erro", "ID do usuário não encontrado.");
       return;
     }
+
     try {
-      await api.deleteUser(id); // Verifique se esse endpoint existe no seu api.js
+      await sheets.deleteUser(id); // <<< corrigido
       Alert.alert("Sucesso", "Usuário deletado com sucesso.");
       onDeleted?.();
       onClose?.();
       navigation.navigate("Login");
     } catch (error) {
-      console.log("Erro ao deletar:", error);
+      console.log("Erro ao deletar:", error.response?.data || error.message);
       Alert.alert(
         "Erro",
         error.response?.data?.error || "Erro ao deletar usuário."
