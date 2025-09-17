@@ -12,12 +12,14 @@ import {
 import api from "../axios/axios";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
+import { Picker } from "@react-native-picker/picker";
+import { FontAwesome } from "@expo/vector-icons";
 
 export default function SalasPorData() {
   const navigation = useNavigation();
   const route = useRoute();
   const { dataSelecionada } = route.params; // recebe a data vinda da Home
-
+  const [blocoSelecionado, setBlocoSelecionado] = useState("");
   const [salas, setSalas] = useState([]);
   const [idUsuario, setIdUsuario] = useState(null);
 
@@ -27,7 +29,7 @@ export default function SalasPorData() {
   }, []);
 
   const handleSalaSelect = (sala) => {
-    navigation.navigate("Reserva", { 
+    navigation.navigate("ReservaData", { 
       sala: sala, 
       idUsuario: idUsuario, 
       data: dataSelecionada 
@@ -43,16 +45,40 @@ export default function SalasPorData() {
     await api.getSalas().then(
       (response) => {
         setSalas(response.data.salas);
+        getSecureData();
       },
       (error) => {
         Alert.alert("Erro", error.response.data.error);
       }
     );
   }
+  const blocos = [...new Set(salas.map((s) => s.bloco))];
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
+        <View style={styles.searchContainer}>
+        <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.navigate("Home")}
+      >
+        <FontAwesome name="arrow-left" size={24} color="#ddd" />
+      </TouchableOpacity>
+          <TextInput style={styles.searchInput} placeholder="Pesquisar" />
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={blocoSelecionado}
+              onValueChange={(itemValue) => setBlocoSelecionado(itemValue)}
+              style={styles.picker}
+              dropdownIconColor="#888"
+            >
+              <Picker.Item label="Selecione um bloco:" color="#888" />
+              {blocos.map((bloco) => (
+                <Picker.Item key={bloco} label={bloco} value={bloco} />
+              ))}
+            </Picker>
+          </View>
+        </View>
         <Text style={styles.dataTitulo}>
           Data escolhida: {new Date(dataSelecionada).toLocaleDateString("pt-BR")}
         </Text>
@@ -118,13 +144,44 @@ const styles = StyleSheet.create({
     fontSize: 14,
     padding: 2,
   },
-  sairButton: {
-    width: "90%",
-    height: 30,
-    borderRadius: 3,
-    backgroundColor: "#FF3F3F",
-    margin: 20,
-    justifyContent: "center",
+  searchContainer: {
+    flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: 10,
+    marginBottom: 0,
+    margin: 10,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    backgroundColor: "white",
+    borderRadius: 4,
+    paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    marginRight: 0,
+    right: 18,
+  },
+  backButton: {
+    padding: 1,
+    alignSelf: "flex-start",
+    margin: 5,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    borderColor: "#ddd",
+    right: 20,
+  },
+  pickerContainer: {
+    width: 70,
+    height: 40,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 4,
+    backgroundColor: "white",
+    justifyContent: "center",
+  },
+  picker: {
+    width: "100%",
+    height: "100%",
   },
 });
