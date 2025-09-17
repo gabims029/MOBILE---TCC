@@ -22,16 +22,19 @@ api.interceptors.request.use(
 const sheets = {
     postLogin:(user) => api.post("/user/login/",user),
     postCadastro:(user) => api.post("User/",user),
-    postSalas:(sala) => api.post("/sala/", sala),
-    getSalas:(sala) => api.get("/sala", sala),
-    getHorarios: ({ id_sala, data }) => api.get(`/reserva/horarios/${id_sala}/${data}`),
-    confirmarReserva:(reserva) => api.post("reserva", reserva),
+    deleteUser: (id) => api.delete(`/user/${id}`),
     getUser: (id) => api.get(`/user/${id}`),
     updateUser:(user) => api.put(`/user`, user),
+    getUsuarios: () => api.get("/user"), 
+
+    postSalas:(sala) => api.post("/sala/", sala),
+    getSalas:(sala) => api.get("/sala", sala),
+    getSalasPorBloco: (bloco) => api.get(`/sala/${bloco}`),
+
+    getHorarios: ({ id_sala, data }) => api.get(`/reserva/horarios/${id_sala}/${data}`),
+    confirmarReserva:(reserva) => api.post("reserva", reserva),
     deleteReserva: (id) => api.delete(`/reserva/${id}`),
     getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
     getTodasReservas: () => api.get(`/reserva`),   
-    deleteUser: (id) => api.delete(`/user/${id}`),
-    getSalasPorBloco: (bloco) => api.get(`/sala/${bloco}`),
 }
 export default sheets;
