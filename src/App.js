@@ -12,6 +12,7 @@ import Layout from "./components/MyLayout";
 import CriarSala from "./screens/CriarSala";
 import ListUser from "./screens/ListUser";
 import TodasReservas from "./screens/TodasReservas";
+import PerfilAdmin from "./screens/PerfilAdmin"; 
 import SalasPorBloco from "./screens/SalasPorBloco";
 import SalasPorData from "./screens/SalasPorData";
 
@@ -115,7 +116,15 @@ export default function App() {
           name="SalasPorData"
           component={(props) => (
             <Layout>
-              <SalasPorData {...props} />
+              <SalasPorData />
+            </Layout>
+          )}
+        />
+        <Stack.Screen
+          name="PerfilAdmin"
+          component={(props) => (
+            <Layout>
+              <PerfilAdmin {...props} />
             </Layout>
           )}
         />
