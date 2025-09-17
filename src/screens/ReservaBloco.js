@@ -12,8 +12,9 @@ import {
 import api from "../axios/axios";
 import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { FontAwesome } from "@expo/vector-icons";
 
-export default function Reserva({ route }) {
+export default function ReservaBloco({ route }) {
   const { sala, idUsuario } = route.params;
   const navigation = useNavigation();
   const [disponiveis, setDisponiveis] = useState([]);
@@ -91,6 +92,9 @@ export default function Reserva({ route }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+            <FontAwesome name="arrow-left" size={24} color="#ddd" style={styles.icon} />
+          </TouchableOpacity>
         <View style={styles.tituloContainer}>
           <Text style={styles.tituloTexto}>
             Sala: {sala.numero} - {sala.descricao}
@@ -145,12 +149,6 @@ export default function Reserva({ route }) {
             </TouchableOpacity>
           ))}
         </View>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Home")}
-          style={styles.voltarButton}
-        >
-          <Text>Voltar</Text>
-        </TouchableOpacity>
         <Modal
           visible={modalVisible}
           onRequestClose={() => setModalVisible(false)}
@@ -203,7 +201,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFC9C9", // fundo rosa claro
     paddingVertical: 10,
     paddingHorizontal: 16,
-    marginTop: 20,
+    marginTop: 0,
   },
   tituloTexto: {
     fontSize: 18,
@@ -280,5 +278,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 5,
     marginHorizontal: 5,
+  },
+  icon: {
+    padding: 1,
+    alignSelf: "flex-start",
+    margin: 5,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    borderColor: "#ddd",
+    right: 0,
   },
 });
