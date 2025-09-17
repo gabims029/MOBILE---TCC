@@ -27,19 +27,17 @@ export default function Home() {
   }, []);
 
   const handleSalaSelect = (sala) => {
-    navigation.navigate("Reserva", { sala: sala, idUsuario: idUsuario });
+    navigation.navigate("ReservaBloco", { sala: sala, idUsuario: idUsuario });
   };
 
   const getSecureData = async () => {
     const value = await SecureStore.getItemAsync("id");
     setIdUsuario(value);
-    console.log(value);
   };
 
   async function getSalas() {
     await api.getSalas().then(
       (response) => {
-        //console.log(response.data);
         setSalas(response.data.salas);
         getSecureData();
       },
@@ -124,10 +122,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: "#ddd",
-    marginRight: 10,
+    marginRight: 0,
+    right: 18,
   },
   pickerContainer: {
-    width: 100,
+    width: 70,
     height: 40,
     borderWidth: 1,
     borderColor: "#ddd",
@@ -174,15 +173,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     padding: 2,
   },
-  sairButton: {
-    width: "90%",
-    height: 30,
-    borderRadius: 3,
-    backgroundColor: "#FF3F3F",
-    margin: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   backButton: {
     padding: 1,
     alignSelf: "flex-start",
@@ -190,5 +180,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 5,
     borderColor: "#ddd",
+    right: 20,
   },
 });
