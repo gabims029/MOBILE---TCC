@@ -33,5 +33,6 @@ const sheets = {
     getTodasReservas: () => api.get(`/reserva`),   
     deleteUser: (id) => api.delete(`/user/${id}`),
     getSalasPorBloco: (bloco) => api.get(`/sala/${bloco}`),
+    getSalasPorData: (data) => api.get(`/sala/${data}`),
 }
 export default sheets;

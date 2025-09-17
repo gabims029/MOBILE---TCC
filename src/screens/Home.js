@@ -33,6 +33,13 @@ export default function Home() {
     navigation.navigate("SalasPorBloco", { bloco, idUsuario });
   };
 
+  //Quando clicar em uma data do calendário
+  const handleDateSelect = (date) => {
+    navigation.navigate("SalasPorData", { 
+      dataSelecionada: date.toISOString().split("T")[0]
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -69,7 +76,10 @@ export default function Home() {
                 selectedTextColor: "white",
               },
             }}
-            onDayPress={(day) => setDataSelecionada(day.dateString)}
+            onDayPress={(day) => {
+              setDataSelecionada(day.dateString);
+              handleDateSelect(new Date(day.dateString)); // navega
+            }}
             theme={{
               textMonthFontWeight: "bold",
               textMonthFontSize: 18,

@@ -13,6 +13,7 @@ import api from "../axios/axios";
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import { Picker } from "@react-native-picker/picker";
+import { FontAwesome } from "@expo/vector-icons";
 
 export default function Home() {
   const navigation = useNavigation();
@@ -54,6 +55,12 @@ export default function Home() {
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.searchContainer}>
+        <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.navigate("Home")}
+      >
+        <FontAwesome name="arrow-left" size={24} color="#ddd" />
+      </TouchableOpacity>
           <TextInput style={styles.searchInput} placeholder="Pesquisar" />
           <View style={styles.pickerContainer}>
             <Picker
@@ -92,13 +99,6 @@ export default function Home() {
               </TouchableOpacity>
             ))}
         </View>
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Login")}
-          style={styles.sairButton}
-        >
-          <Text>Sair</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -182,5 +182,13 @@ const styles = StyleSheet.create({
     margin: 20,
     justifyContent: "center",
     alignItems: "center",
+  },
+  backButton: {
+    padding: 1,
+    alignSelf: "flex-start",
+    margin: 5,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    borderColor: "#ddd",
   },
 });
