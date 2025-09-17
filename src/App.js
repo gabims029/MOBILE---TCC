@@ -4,7 +4,8 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Login from "./screens/LoginScreen";
 import Cadastro from "./screens/CadastroScreen";
 import Home from "./screens/Home";
-import Reserva from "./screens/ReservaScreen";
+import ReservaBloco from "./screens/ReservaBloco";
+import ReservaData from "./screens/ReservaData";
 import MinhasReservas from "./screens/MinhasReservas";
 import Perfil from "./screens/Perfil";
 import Layout from "./components/MyLayout";
@@ -12,6 +13,7 @@ import CriarSala from "./screens/CriarSala";
 import ListUser from "./screens/ListUser";
 import TodasReservas from "./screens/TodasReservas";
 import SalasPorBloco from "./screens/SalasPorBloco";
+import SalasPorData from "./screens/SalasPorData";
 
 const Stack = createStackNavigator();
 
@@ -46,10 +48,18 @@ export default function App() {
           )}
         </Stack.Screen>
 
-        <Stack.Screen name="Reserva">
+        <Stack.Screen name="ReservaBloco">
           {(props) => (
             <Layout>
-              <Reserva {...props} />
+              <ReservaBloco {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="ReservaData">
+          {(props) => (
+            <Layout>
+              <ReservaData {...props} />
             </Layout>
           )}
         </Stack.Screen>
