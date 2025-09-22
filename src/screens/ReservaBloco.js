@@ -26,12 +26,12 @@ export default function ReservaBloco({ route }) {
 
   useEffect(() => {
     if (data) {
-      getHorarios(data);
+      getAllPeriodos(data);
     }
   }, [data]);
 
-  async function getHorarios(selectedDate) {
-    await api.getHorarios({ id_sala: sala.id_sala, data: selectedDate }).then(
+  async function getAllPeriodos(selectedDate) {
+    await api.getAllPeriodos({ id_sala: sala.id_sala, data: selectedDate }).then(
       (response) => {
         setDisponiveis(response.data.horarios.Disponiveis);
         setReservados(response.data.horarios.Indisponiveis);
@@ -76,7 +76,7 @@ export default function ReservaBloco({ route }) {
         () => {
           setModalVisible(false);
           Alert.alert("Sucesso", "Reserva confirmada!");
-          getHorarios(data); // Atualiza horários após reserva
+          getAllPeriodos(data);
         },
         (error) => {
           Alert.alert(

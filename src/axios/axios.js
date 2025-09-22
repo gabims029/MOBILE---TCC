@@ -32,13 +32,12 @@ const sheets = {
   // Salas
     getSalas:(sala) => api.get("/sala", sala),
     postSalas:(sala) => api.post("/sala/", sala),
-     getSalasPorBloco: (bloco) => api.get(`/sala/${bloco}`),
+    getSalasPorBloco: (bloco) => api.get(`/sala/${bloco}`),
     getSalasPorData: (data) => api.get(`/sala/${data}`),
       
-    getHorarios: ({ id_sala, data }) => api.get(`/reserva/horarios/${id_sala}/${data}`),
 
   // Reservas
-  getHorarios: ({ id_sala, data }) =>api.get(`/reserva/horarios/${id_sala}/${data}`),
+  getAllPeriodos: () => api.get(`/periodo`),
   confirmarReserva: (reserva) => api.post("/reserva", reserva),
   deleteReserva: (id) => api.delete(`/reserva/${id}`),
   getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
