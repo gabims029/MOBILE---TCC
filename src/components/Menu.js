@@ -1,11 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ModalConfirmacao from "./ModalConfirmacao";
+import * as SecureStore from 'expo-secure-store';
 
 export default function Menu({ visible, onClose }) {
   const navigation = useNavigation();
   const [confirmVisible, setConfirmVisible] = useState(false);
+  const [tipo, setTipo] = useState("user");
+
+  useEffect(() => {
+    const fetchTipo = async () => {
+      const tipo = await SecureStore.getItemAsync("tipo");
+      setTipo(tipo || "user");
+    };
+    fetchTipo();
+  }, []);
 
   const handleNavigate = (screen) => {
     onClose();
@@ -37,18 +47,24 @@ export default function Menu({ visible, onClose }) {
             <Text style={styles.item}>Meu Perfil</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => handleNavigate("MinhasReservas")}>
-            <Text style={styles.item}>Minhas Reservas</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => handleNavigate("TodasReservas")}>
+          <TouchableOpacity onPress={() => handleNavigate("ConsultarReservas")}>
             <Text style={styles.item}>Consultar Reservas</Text>
           </TouchableOpacity>
+          {tipo === "admin" && (
+            <>
+              <TouchableOpacity onPress={() => handleNavigate("Cadastro")}>
+                <Text style={styles.item}>Cadastrar Usuário</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => handleNavigate("Cadastro")}>
-            <Text style={styles.item}>Cadastrar Usuário</Text>
+              <TouchableOpacity onPress={() => handleNavigate("ListUser")}>
+                <Text style={styles.item}>Vizualizar Usuários</Text>
+              </TouchableOpacity>
 
-          </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleNavigate("CriarSala")}>
+                <Text style={styles.item}>Criar Sala</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
           <TouchableOpacity onPress={abrirModal}>
             <Text style={styles.item}>Sair</Text>
