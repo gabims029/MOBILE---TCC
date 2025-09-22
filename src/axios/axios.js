@@ -37,7 +37,7 @@ const sheets = {
       
 
   // Reservas
-  getAllPeriodos: () => api.get(`/periodo`),
+  getAllPeriodos: () => api.get(`/periodo/:id`),
   confirmarReserva: (reserva) => api.post("/reserva", reserva),
   deleteReserva: (id) => api.delete(`/reserva/${id}`),
   getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
