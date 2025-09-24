@@ -13,7 +13,8 @@ import Logo from "../../assets/logosenai.png";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
-import Menu from "../components/Menu"; // importa o menu lateral
+import Menu from "../components/Menu";
+import * as ImagePicker from "expo-image-picker";
 
 export default function Cadastro() {
   const [user, setUser] = useState({
@@ -25,20 +26,48 @@ export default function Cadastro() {
     showPassord: true,
   });
 
-  const [menuVisible, setMenuVisible] = useState(false); // controla visibilidade do menu
+  const [foto, setFoto] = useState(null);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const navigation = useNavigation();
 
+  async function escolherFoto() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setFoto(result.assets[0]); // pega primeira imagem
+    }
+  }
+
   async function handleCadastro() {
-    await api.postCadastro(user).then(
-      (response) => {
-        Alert.alert("OK", response.data.message);
-        navigation.navigate("Home");
-      },
-      (error) => {
-        Alert.alert("Erro", error.response?.data?.error || "Erro ao cadastrar");
-      }
-    );
+    const formData = new FormData();
+    formData.append("nome", user.nome);
+    formData.append("email", user.email);
+    formData.append("cpf", user.cpf);
+    formData.append("senha", user.senha);
+    formData.append("tipo", user.tipo);
+
+    if (foto) {
+      formData.append("foto", {
+        uri: foto.uri,
+        name: "profile.jpg",
+        type: "image/jpeg",
+      });
+    }
+
+    try {
+      const response = await api.post("/user", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      Alert.alert("OK", response.data.message);
+      navigation.navigate("Home");
+    } catch (error) {
+      console.log(error.response?.data);
+      Alert.alert("Erro", error.response?.data?.error || "Erro ao cadastrar");
+    }
   }
 
   return (
@@ -46,8 +75,7 @@ export default function Cadastro() {
       <TouchableOpacity
         style={styles.menuButton}
         onPress={() => setMenuVisible(true)}
-      >
-      </TouchableOpacity>
+      />
 
       <View style={styles.cadastroCard}>
         <View style={styles.logoContainer}>
@@ -59,6 +87,20 @@ export default function Cadastro() {
             />
           </View>
         </View>
+
+        {/* Escolher foto */}
+        <TouchableOpacity onPress={escolherFoto} style={styles.fotoButton}>
+          <Text style={{ color: "white" }}>
+            {foto ? "Foto selecionada" : "Escolher Foto"}
+          </Text>
+        </TouchableOpacity>
+
+        {foto && (
+          <Image
+            source={{ uri: foto.uri }}
+            style={{ width: 100, height: 100, borderRadius: 50, marginVertical: 10 }}
+          />
+        )}
 
         <TextInput
           style={styles.input}
@@ -159,6 +201,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
+  },
+  fotoButton: {
+    backgroundColor: "#FF3F3F",
+    padding: 10,
+    borderRadius: 25,
+    marginVertical: 10,
   },
   input: {
     width: "100%",
