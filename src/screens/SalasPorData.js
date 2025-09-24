@@ -58,26 +58,28 @@ export default function SalasPorData() {
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.searchContainer}>
+
         <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.navigate("Home")}
-      >
-        <FontAwesome name="arrow-left" size={24} color="#ddd" />
+      ><FontAwesome name="arrow-left" size={24} color="#ddd" />
       </TouchableOpacity>
+
           <TextInput style={styles.searchInput} placeholder="Pesquisar" />
+          
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={blocoSelecionado}
               onValueChange={(itemValue) => setBlocoSelecionado(itemValue)}
               style={styles.picker}
               dropdownIconColor="#888"
-            >
-              <Picker.Item label="Selecione um bloco:" color="#888" />
+            ><Picker.Item label="Selecione um bloco:" color="#888" />
               {blocos.map((bloco) => (
                 <Picker.Item key={bloco} label={bloco} value={bloco} />
               ))}
             </Picker>
           </View>
+
         </View>
         <Text style={styles.dataTitulo}>
           Data escolhida: {new Date(dataSelecionada).toLocaleDateString("pt-BR")}

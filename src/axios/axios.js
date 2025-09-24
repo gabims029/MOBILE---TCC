@@ -30,14 +30,14 @@ const sheets = {
   getUsuarios: () => api.get("/user"), 
 
   // Salas
-    getSalas:(sala) => api.get("/sala", sala),
-    postSalas:(sala) => api.post("/sala/", sala),
-    getSalasPorBloco: (bloco) => api.get(`/sala/${bloco}`),
-    getSalasPorData: (data) => api.get(`/sala/${data}`),
+  getSalas:(sala) => api.get("/sala", sala),
+  postSalas:(sala) => api.post("/sala/", sala),
+  getSalasPorBloco: (bloco) => api.get(`/sala/${bloco}`),
+  getSalasPorData: (data) => api.get(`/sala/${data}`),
       
 
   // Reservas
-  getAllPeriodos: () => api.get(`/periodo/:id`),
+  getAllPeriodos: () => api.get("/periodo"),
   confirmarReserva: (reserva) => api.post("/reserva", reserva),
   deleteReserva: (id) => api.delete(`/reserva/${id}`),
   getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),

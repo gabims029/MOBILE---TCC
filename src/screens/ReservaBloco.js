@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import api from "../axios/axios";
 import { useNavigation } from "@react-navigation/native";
@@ -17,35 +18,47 @@ import { FontAwesome } from "@expo/vector-icons";
 export default function ReservaBloco({ route }) {
   const { sala, idUsuario } = route.params;
   const navigation = useNavigation();
-  const [disponiveis, setDisponiveis] = useState([]);
-  const [reservados, setReservados] = useState([]);
+
+  const [horarios, setHorarios] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState(false);
+
   const [modalVisible, setModalVisible] = useState(false);
-  const [horarioSelecionado, setHorarioSelecionado] = useState(null);
+  const [horariosSelecionados, setHorariosSelecionados] = useState([]);
   const [data, setData] = useState("");
   const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
     if (data) {
-      getAllPeriodos(data);
+      fetchHorarios(data);
     }
   }, [data]);
 
-  async function getAllPeriodos(selectedDate) {
+  async function fetchHorarios(selectedDate) {
     try {
-      const response = await api.get(`/horarios-sala`, {
-        params: { id_sala: sala.id_sala, data: selectedDate },
-      });
+      setLoading(true);
+      setErro(false);
+      const response = await api.getAllPeriodos();
+      setHorarios(response.data.periodos);
 
-      setDisponiveis(response.data.horarios.disponiveis);
-      setReservados(response.data.horarios.indisponiveis);
+      // A API precisa retornar algo como response.data.periodos
+      setHorarios(response.data?.periodos || []);
     } catch (error) {
-      Alert.alert("Erro", error.response?.data?.error || "Erro ao buscar horários");
+      console.log("Erro ao buscar horários:", error.response?.data || error);
+      setErro(true);
+      setHorarios([]);
+    } finally {
+      setLoading(false);
     }
   }
 
-  function abrirModal(horario) {
-    setHorarioSelecionado(horario);
-    setModalVisible(true);
+  function toggleHorario(horario) {
+    if (horario.status === "ocupado") return;
+    setHorariosSelecionados((prev) =>
+      prev.includes(horario.id_periodo)
+        ? prev.filter((id) => id !== horario.id_periodo)
+        : [...prev, horario.id_periodo]
+    );
   }
 
   const onChangeDate = (event, selectedDate) => {
@@ -57,46 +70,47 @@ export default function ReservaBloco({ route }) {
   };
 
   async function confirmarReserva() {
-    const inicio = horarioSelecionado.inicio;
-    const fim = horarioSelecionado.fim;
+  try {
+    for (let i = 0; i < horariosSelecionados.length; i++) {
+      const id_periodo = horariosSelecionados[i];
+      const periodo = horarios.find((h) => h.id_periodo === id_periodo);
 
-    try {
-      await api.post("/confirmar-reserva", {
-        id_usuario: idUsuario,
+      await api.confirmarReserva({
+        fk_id_user: idUsuario,
         fk_id_sala: sala.id_sala,
-        data: data,
-        horarioInicio: inicio,
-        horarioFim: fim,
+        fk_id_periodo: periodo.id_periodo,
+        data_inicio: data,
+        data_fim: data,
       });
-
-      setModalVisible(false);
-      Alert.alert("Sucesso", "Reserva confirmada!");
-      getAllPeriodos(data);
-    } catch (error) {
-      Alert.alert(
-        "Erro",
-        error.response?.data?.error || "Erro ao reservar"
-      );
-      setModalVisible(false);
     }
+
+    Alert.alert("Sucesso", "Reserva confirmada!");
+    setModalVisible(false);
+    fetchHorarios(data);
+    setHorariosSelecionados([]);
+  } catch (error) {
+    console.log(error.response?.data || error);
+    Alert.alert("Erro", error.response?.data?.error || "Erro ao reservar");
+    setModalVisible(false);
   }
+}
+
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <FontAwesome
-            name="arrow-left"
-            size={24}
-            color="#ddd"
-            style={styles.icon}
-          />
-        </TouchableOpacity>
+        {/* Botão voltar */}
+        <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => navigation.navigate("SalasPorBloco")}
+              >
+                <FontAwesome name="arrow-left" size={24} color="#ddd" />
+              </TouchableOpacity>
 
         <View style={styles.tituloContainer}>
           <Text style={styles.tituloTexto}>
             Sala: {sala.numero} - {sala.descricao}
-          </Text>
+            </Text>
         </View>
 
         <View style={{ padding: 10 }}>
@@ -105,7 +119,7 @@ export default function ReservaBloco({ route }) {
             style={styles.dateButton}
             onPress={() => setShowPicker(true)}
           >
-            <Text>{data || "Selecione a data"}</Text>
+            <Text>{data || "Selecione aqui"}</Text>
           </TouchableOpacity>
 
           {showPicker && (
@@ -118,43 +132,95 @@ export default function ReservaBloco({ route }) {
           )}
         </View>
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap", padding: 10 }}>
-          {disponiveis.map((horario) => (
-            <TouchableOpacity
-              key={`disp-${horario.inicio}-${horario.fim}`}
-              style={styles.horarioDisponivel}
-              onPress={() => abrirModal(horario)}
-            >
-              <Text style={styles.horarioTexto}>
-                {horario.inicio} - {horario.fim}
-              </Text>
-            </TouchableOpacity>
-          ))}
-
-          {reservados.map((horario) => (
-            <TouchableOpacity
-              key={`res-${horario.inicio}-${horario.fim}`}
-              style={styles.horarioReservado}
-            >
-              <Text style={styles.horarioTexto}>
-                {horario.inicio} - {horario.fim}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        <View style={{ padding: 10, alignItems: "center" }}>
+          {loading ? (
+            <ActivityIndicator size="large" color="red" />
+          ) : erro ? (
+            <Text style={{ color: "red" }}>
+              Erro ao carregar horários. Tente novamente.
+            </Text>
+          ) : horarios.length === 0 ? (
+            <Text>Nenhum horário disponível.</Text>
+          ) : (
+            <View style={styles.horariosGrid}>
+              {horarios.map((h) => {
+                const selecionado = horariosSelecionados.includes(h.id_periodo);
+                return (
+                  <TouchableOpacity
+                    key={h.id_periodo}
+                    style={[
+                      styles.horarioBtn,
+                      h.status === "ocupado"
+                        ? styles.ocupado
+                        : selecionado
+                        ? styles.selecionado
+                        : styles.disponivel,
+                    ]}
+                    disabled={h.status === "ocupado"}
+                    onPress={() => toggleHorario(h)}
+                  >
+                    <Text
+                      style={[
+                        styles.horarioTexto,
+                        h.status === "ocupado"
+                          ? { color: "#fff" }
+                          : selecionado
+                          ? { color: "#000" }
+                          : { color: "#fff" },
+                      ]}
+                    >
+                      {h.horario_inicio.slice(0, 5)} -{" "}
+                      {h.horario_fim.slice(0, 5)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
         </View>
+
+        {horariosSelecionados.length > 0 && (
+          <View style={{ alignItems: "center", marginVertical: 20 }}>
+            <TouchableOpacity
+              onPress={() => setModalVisible(true)}
+              style={styles.reservarBtn}
+            >
+              <Text style={{ color: "white", fontWeight: "bold" }}>
+                Reservar
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <Modal
           visible={modalVisible}
           onRequestClose={() => setModalVisible(false)}
           animationType="slide"
+          transparent
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>RESERVAR</Text>
-              <Text style={{ fontSize: 18 }}>SALA: {sala.descricao} </Text>
-              <Text style={{ fontSize: 18 }}>DATA: {data}</Text>
-              <Text style={{ fontSize: 18 }}>
-                HORÁRIO: {horarioSelecionado?.inicio} - {horarioSelecionado?.fim}
+              <Text style={styles.modalTitle}>Confirmar Reserva</Text>
+              <Text style={{ fontSize: 16, marginVertical: 5 }}>
+                Sala: {sala.descricao}
+              </Text>
+              <Text style={{ fontSize: 16, marginVertical: 5 }}>
+                Data: {data}
+              </Text>
+              <Text style={{ fontSize: 16, marginVertical: 5 }}>
+                Horários:{" "}
+                {horariosSelecionados
+                  .map(
+                    (id) =>
+                      horarios
+                        .find((h) => h.id_periodo === id)
+                        ?.horario_inicio.slice(0, 5) +
+                      " - " +
+                      horarios
+                        .find((h) => h.id_periodo === id)
+                        ?.horario_fim.slice(0, 5)
+                  )
+                  .join(", ")}
               </Text>
 
               <View style={styles.modalButtons}>
@@ -168,7 +234,9 @@ export default function ReservaBloco({ route }) {
                   onPress={confirmarReserva}
                   style={styles.confirmar}
                 >
-                  <Text style={{ fontWeight: "bold" }}>CONFIRMAR</Text>
+                  <Text style={{ fontWeight: "bold", color: "#fff" }}>
+                    CONFIRMAR
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -181,17 +249,88 @@ export default function ReservaBloco({ route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFF5F5" },
-  tituloContainer: { backgroundColor: "#FFC9C9", padding: 16, marginTop: 0 },
+  tituloContainer: { backgroundColor: "#FFC9C9", padding: 16 },
   tituloTexto: { fontSize: 18, fontWeight: "bold", color: "#000" },
-  dateButton: { width: 200, marginTop: 10, padding: 10, backgroundColor: "#ccc", borderRadius: 5 },
-  horarioDisponivel: { backgroundColor: "#ADD7A9", padding: 10, margin: 8, borderRadius: 3, minWidth: 130, alignItems: "center" },
-  horarioReservado: { backgroundColor: "#E56565", padding: 10, margin: 8, borderRadius: 3, minWidth: 130, alignItems: "center" },
-  horarioTexto: { fontWeight: "bold", fontSize: 15 },
-  modalContainer: { flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center" },
-  modalBox: { width: "85%", backgroundColor: "#F5F7FB", padding: 20, alignItems: "center", borderRadius: 10, paddingBottom: 15 },
-  modalTitle: { fontSize: 20, fontWeight: "bold", backgroundColor: "#B92626", color: "white", paddingVertical: 8, borderTopLeftRadius: 10, borderTopRightRadius: 10, width: "100%", textAlign: "center", marginBottom: 10 },
-  modalButtons: { flexDirection: "row", marginTop: 20, justifyContent: "space-between" },
-  cancelar: { backgroundColor: "#F8BFC0", padding: 10, minWidth: 100, alignItems: "center", borderRadius: 5, marginRight: 5 },
-  confirmar: { backgroundColor: "#A5D6A7", padding: 10, minWidth: 100, alignItems: "center", borderRadius: 5, marginHorizontal: 5 },
-  icon: { padding: 1, alignSelf: "flex-start", margin: 5, borderRadius: 4, paddingHorizontal: 5, borderColor: "#ddd" },
+  dateButton: {
+    width: 200,
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: "#ccc",
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  horariosGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  horarioBtn: {
+    padding: 12,
+    margin: 6,
+    borderRadius: 6,
+    minWidth: 120,
+    alignItems: "center",
+  },
+  disponivel: { backgroundColor: "#81c784" },
+  ocupado: { backgroundColor: "#e57373" },
+  selecionado: {
+    backgroundColor: "#fff",
+    borderWidth: 2,
+    borderColor: "red",
+  },
+  horarioTexto: { fontWeight: "bold" },
+  reservarBtn: {
+    backgroundColor: "red",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+  },
+  modalBox: {
+    width: "85%",
+    backgroundColor: "#fff",
+    padding: 20,
+    alignItems: "center",
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    marginTop: 20,
+  },
+  cancelar: {
+    backgroundColor: "#F8BFC0",
+    padding: 10,
+    minWidth: 100,
+    alignItems: "center",
+    borderRadius: 5,
+    marginRight: 5,
+  },
+  confirmar: {
+    backgroundColor: "#66bb6a",
+    padding: 10,
+    minWidth: 100,
+    alignItems: "center",
+    borderRadius: 5,
+    marginLeft: 5,
+  },
+  backButton: {
+    padding: 1,
+    alignSelf: "flex-start",
+    margin: 5,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    borderColor: "#ddd",
+    right: 5,
+  },
+  icon: { margin: 10 },
 });
