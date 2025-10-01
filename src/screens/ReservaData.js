@@ -1,187 +1,360 @@
-import React, { useState, useEffect } from "react";
+// ReservaBloco.js
+import React, { useEffect, useState, useCallback } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   SafeAreaView,
   ScrollView,
+  View,
+  Text,
   TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
   Alert,
   Modal,
 } from "react-native";
-import api from "../axios/axios";
-import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { FontAwesome } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../axios/axios";
 
-export default function ReservaBloco({ route }) {
-  const { sala, idUsuario } = route.params;
-  const navigation = useNavigation();
-  const [disponiveis, setDisponiveis] = useState([]);
-  const [reservados, setReservados] = useState([]);
+export default function ReservaBloco({ route, navigation }) {
+  const { sala, idUsuario: idUsuarioParam } = route.params || {};
+
+  const hoje = new Date().toISOString().split("T")[0];
+
+  const [idUsuario, setIdUsuario] = useState(idUsuarioParam || null);
+  const [nomeUsuario, setNomeUsuario] = useState(null);
+
+  const [horarios, setHorarios] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState(false);
+
+  const [horariosSelecionados, setHorariosSelecionados] = useState([]);
+  const [dataInicio, setDataInicio] = useState(hoje);
+  const [dataFim, setDataFim] = useState(hoje);
+  const [showPickerInicio, setShowPickerInicio] = useState(false);
+  const [showPickerFim, setShowPickerFim] = useState(false);
+
+  const [diasSemana, setDiasSemana] = useState([
+    "Seg",
+    "Ter",
+    "Qua",
+    "Qui",
+    "Sex",
+    "Sab",
+  ]);
+  const [diasSelecionados, setDiasSelecionados] = useState([]);
+
   const [modalVisible, setModalVisible] = useState(false);
-  const [horarioSelecionado, setHorarioSelecionado] = useState(null);
-  const [data, setData] = useState("");
-  const [showPicker, setShowPicker] = useState(false); // controlar a exibição do DateTimePicker
+
+  // buscar id/nome do AsyncStorage se não veio por param
+  useEffect(() => {
+    (async () => {
+      if (!idUsuarioParam) {
+        try {
+          const id = await AsyncStorage.getItem("id_usuario");
+          const nome = (await AsyncStorage.getItem("nome_usuario")) || "Usuário";
+          if (id) setIdUsuario(id);
+          setNomeUsuario(nome);
+        } catch (e) {
+          console.log("Erro ao ler AsyncStorage:", e);
+        }
+      } else {
+        // se veio por param, tentar pegar nome armazenado
+        (async () => {
+          try {
+            const nome = (await AsyncStorage.getItem("nome_usuario")) || "Usuário";
+            setNomeUsuario(nome);
+          } catch (e) {
+            setNomeUsuario("Usuário");
+          }
+        })();
+      }
+    })();
+  }, [idUsuarioParam]);
+
+  // busca períodos disponíveis
+  const fetchHorarios = useCallback(async () => {
+    if (!sala) return;
+    try {
+      setLoading(true);
+      setErro(false);
+      const res = await api.getAllPeriodos(); // mantém uso do api centralizado
+      setHorarios(res.data?.periodos || []);
+    } catch (error) {
+      console.log("Erro ao buscar períodos:", error);
+      setErro(true);
+      setHorarios([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [sala]);
 
   useEffect(() => {
-    if (data) {
-      getHorarios(data);
-    }
-  }, [data]);
+    fetchHorarios();
+  }, [fetchHorarios]);
 
-  async function getHorarios(selectedDate) {
-    await api.getHorarios({ id_sala: sala.id_sala, data: selectedDate }).then(
-      (response) => {
-        setDisponiveis(response.data.horarios.Disponiveis);
-        setReservados(response.data.horarios.Indisponiveis);
-        console.log(disponiveis);
-        console.log(reservados)
-      },
-      (error) => {
-        Alert.alert("Erro", error.response.data.error);
-        saveId(response.data.id_usuario);
-      }
+  // toggles
+  function toggleHorario(h) {
+    if (h.status === "ocupado") return;
+    setHorariosSelecionados((prev) =>
+      prev.includes(h.id_periodo)
+        ? prev.filter((id) => id !== h.id_periodo)
+        : [...prev, h.id_periodo]
     );
   }
 
-  async function abrirModal(horario) {
-    setHorarioSelecionado(horario);
-    setModalVisible(true);
+  function toggleDia(dia) {
+    setDiasSelecionados((prev) =>
+      prev.includes(dia) ? prev.filter((d) => d !== dia) : [...prev, dia]
+    );
   }
 
-  //event - interação do usuário vem do DateTimePicker
-  const onChangeDate = (event, selectedDate) => {
-    setShowPicker(false);
-
+  // date pickers
+  const onChangeInicio = (event, selectedDate) => {
+    setShowPickerInicio(false);
     if (selectedDate) {
-      const formattedDate = selectedDate.toISOString().split("T")[0];
-      setData(formattedDate);
+      setDataInicio(selectedDate.toISOString().split("T")[0]);
     }
   };
 
-  async function confirmarReserva() {
-    const inicio = horarioSelecionado.inicio;
-    const fim = horarioSelecionado.fim;
+  const onChangeFim = (event, selectedDate) => {
+    setShowPickerFim(false);
+    if (selectedDate) {
+      setDataFim(selectedDate.toISOString().split("T")[0]);
+    }
+  };
 
-    await api
-      .confirmarReserva({
-        id_usuario: idUsuario,
-        fk_id_sala: sala.id_sala,
-        data: data,
-        horarioInicio: inicio,
-        horarioFim: fim,
-      })
-      .then(
-        () => {
-          setModalVisible(false);
-          Alert.alert("Sucesso", "Reserva confirmada!");
-          getHorarios(data); // Atualiza horários após reserva
-        },
-        (error) => {
-          Alert.alert(
-            "Erro",
-            error.response?.data?.error || "Erro ao reservar"
-          );
-          console.log(error);
-          setModalVisible(false);
-        }
+  // formatar data antes de enviar - backend espera YYYY-MM-DD
+  const formatarData = (d) =>
+    d instanceof Date ? d.toISOString().split("T")[0] : d;
+
+  // confirmar reserva (loop porque backend aceita 1 periodo por request)
+  async function confirmarReserva() {
+    if (!idUsuario) {
+      return Alert.alert(
+        "Erro",
+        "ID do usuário não encontrado. Faça login novamente."
       );
+    }
+
+    if (
+      !dataInicio ||
+      !dataFim ||
+      diasSelecionados.length === 0 ||
+      horariosSelecionados.length === 0
+    ) {
+      return Alert.alert(
+        "Atenção",
+        "Selecione datas, dias da semana e ao menos um horário."
+      );
+    }
+
+    // validação simples cliente: dataInicio <= dataFim
+    if (new Date(dataInicio) > new Date(dataFim)) {
+      return Alert.alert(
+        "Atenção",
+        "A data de início não pode ser maior que a data de fim."
+      );
+    }
+
+    try {
+      setLoading(true);
+      for (const id_periodo of horariosSelecionados) {
+        await api.createReserva({
+          fk_id_user: idUsuario,
+          fk_id_sala: sala.id_sala,
+          fk_id_periodo: id_periodo,
+          dias: diasSelecionados,
+          data_inicio: formatarData(dataInicio),
+          data_fim: formatarData(dataFim),
+        });
+      }
+
+      Alert.alert("Sucesso", `Reserva realizada para sala ${sala.numero}`);
+      setModalVisible(false);
+      setHorariosSelecionados([]);
+      setDiasSelecionados([]);
+      setDataInicio(hoje);
+      setDataFim(hoje);
+      await fetchHorarios();
+    } catch (error) {
+      console.log("Erro ao criar reserva:", error?.response?.data || error);
+      const msg =
+        error?.response?.data?.error || "Erro ao processar a reserva. Tente novamente.";
+      Alert.alert("Erro", msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Text for horarios selected join
+  const horariosTexto = horariosSelecionados
+    .map((id) => {
+      const h = horarios.find((x) => x.id_periodo === id);
+      if (!h) return null;
+      return `${h.horario_inicio.slice(0, 5)} - ${h.horario_fim.slice(0, 5)}`;
+    })
+    .filter(Boolean)
+    .join(", ");
+
+  if (!sala) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ padding: 20 }}>
+          <Text style={{ color: "red", fontWeight: "bold" }}>
+            Sala não encontrada!
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-            <FontAwesome name="arrow-left" size={24} color="#ddd" style={styles.icon} />
-          </TouchableOpacity>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <FontAwesome name="arrow-left" size={22} color="#333" />
+        </TouchableOpacity>
+
         <View style={styles.tituloContainer}>
           <Text style={styles.tituloTexto}>
-            Sala: {sala.numero} - {sala.descricao}
+            Sala: {sala.numero} {sala.descricao ? `- ${sala.descricao}` : ""}
           </Text>
         </View>
 
-        <View style={{ padding: 10 }}>
-          <Text style={{ fontWeight: "bold" }}>Selecione a data:</Text>
+        <View style={styles.dataContainer}>
+          <Text style={styles.label}>Data Início</Text>
           <TouchableOpacity
-            style={{
-              width: 200,
-              marginTop: 10,
-              padding: 10,
-              backgroundColor: "#ccc",
-              borderRadius: 5,
-            }}
-            onPress={() => setShowPicker(true)}
+            style={styles.dateButton}
+            onPress={() => setShowPickerInicio(true)}
           >
-            <Text>{data || "Selecione a data"}</Text>
+            <Text>{dataInicio || "Selecione a data"}</Text>
           </TouchableOpacity>
-
-          {showPicker && (
+          {showPickerInicio && (
             <DateTimePicker
-              value={data ? new Date(data) : new Date()}
+              value={dataInicio ? new Date(dataInicio) : new Date()}
               mode="date"
               display="default"
-              onChange={onChangeDate}
+              onChange={onChangeInicio}
+            />
+          )}
+
+          <Text style={styles.label}>Data Fim</Text>
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={() => setShowPickerFim(true)}
+          >
+            <Text>{dataFim || "Selecione a data"}</Text>
+          </TouchableOpacity>
+          {showPickerFim && (
+            <DateTimePicker
+              value={dataFim ? new Date(dataFim) : new Date()}
+              mode="date"
+              display="default"
+              onChange={onChangeFim}
             />
           )}
         </View>
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap", padding: 10 }}>
-          {disponiveis.map((horario) => (
-            <TouchableOpacity
-              key={`disp-${horario.inicio}-${horario.fim}`}
-              style={styles.horarioDisponivel}
-              onPress={() => abrirModal(horario)}
-            >
-              <Text style={{ fontWeight: "bold", fontSize: 15 }}>
-                {horario.inicio} - {horario.fim}
-              </Text>
-            </TouchableOpacity>
-          ))}
-          {reservados.map((horario) => (
-            <TouchableOpacity
-              key={`res-${horario.inicio}-${horario.fim}`}
-              style={styles.horarioReservado}
-            >
-              <Text style={{ fontWeight: "bold", fontSize: 15 }}>
-                {horario.inicio} - {horario.fim}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        <View style={styles.diasContainer}>
+          <Text style={styles.label}>Dias da semana</Text>
+          <View style={styles.diasButtons}>
+            {diasSemana.map((dia) => {
+              const selecionado = diasSelecionados.includes(dia);
+              return (
+                <TouchableOpacity
+                  key={dia}
+                  style={[styles.dia, selecionado && styles.diaSelecionado]}
+                  onPress={() => toggleDia(dia)}
+                >
+                  <Text style={[styles.textoDia, selecionado && styles.textoSelecionado]}>
+                    {dia}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
-        <Modal
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
-          animationType="slide"
-        >
+
+        <View style={{ padding: 10, alignItems: "center" }}>
+          {loading ? (
+            <ActivityIndicator size="large" />
+          ) : erro ? (
+            <Text style={{ color: "red" }}>Erro ao carregar horários</Text>
+          ) : horarios.length === 0 ? (
+            <Text>Nenhum horário disponível</Text>
+          ) : (
+            <View style={styles.horariosGrid}>
+              {horarios.map((h) => {
+                const selecionado = horariosSelecionados.includes(h.id_periodo);
+                return (
+                  <TouchableOpacity
+                    key={h.id_periodo}
+                    style={[
+                      styles.horarioBtn,
+                      h.status === "ocupado"
+                        ? styles.ocupado
+                        : selecionado
+                        ? styles.selecionado
+                        : styles.disponivel,
+                    ]}
+                    disabled={h.status === "ocupado"}
+                    onPress={() => toggleHorario(h)}
+                  >
+                    <Text
+                      style={[
+                        styles.horarioTexto,
+                        h.status === "ocupado"
+                          ? { color: "#fff" }
+                          : selecionado
+                          ? { color: "#000" }
+                          : { color: "#fff" },
+                      ]}
+                    >
+                      {h.horario_inicio.slice(0, 5)} - {h.horario_fim.slice(0, 5)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
+        {horariosSelecionados.length > 0 && (
+          <View style={{ alignItems: "center", marginVertical: 20 }}>
+            <TouchableOpacity
+              style={styles.reservarBtn}
+              onPress={() => setModalVisible(true)}
+            >
+              <Text style={{ color: "white", fontWeight: "bold" }}>Reservar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Modal de confirmação */}
+        <Modal visible={modalVisible} transparent animationType="slide">
           <View style={styles.modalContainer}>
             <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>RESERVAR</Text>
-              <Text style={{ fontSize: 18 }}>SALA: {sala.descricao} </Text>
-              <Text style={{ fontSize: 18 }}>DATA: {data}</Text>
-              <Text style={{ fontSize: 18 }}>
-                HORÁRIO: {horarioSelecionado?.inicio} -{" "}
-                {horarioSelecionado?.fim}
+              <Text style={styles.modalTitle}>Confirmar Reserva</Text>
+              <Text style={{ fontSize: 16 }}>Sala: {sala.numero}</Text>
+              <Text style={{ fontSize: 16 }}>
+                Data: {dataInicio} a {dataFim}
               </Text>
+              <Text style={{ fontSize: 16 }}>Dias: {diasSelecionados.join(", ")}</Text>
+              <Text style={{ fontSize: 16 }}>Horários: {horariosTexto}</Text>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  marginTop: 20,
-                  justifyContent: "space-between",
-                }}
-              >
+              <View style={styles.modalButtons}>
                 <TouchableOpacity
-                  onPress={() => setModalVisible(false)}
                   style={styles.cancelar}
+                  onPress={() => setModalVisible(false)}
                 >
                   <Text style={{ fontWeight: "bold" }}>CANCELAR</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={confirmarReserva}
-                  style={styles.confirmar}
-                >
-                  <Text style={{ fontWeight: "bold" }}>CONFIRMAR</Text>
+                <TouchableOpacity style={styles.confirmar} onPress={confirmarReserva}>
+                  <Text style={{ fontWeight: "bold", color: "#fff" }}>CONFIRMAR</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -193,99 +366,82 @@ export default function ReservaBloco({ route }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFF5F5",
-  },
-  tituloContainer: {
-    backgroundColor: "#FFC9C9", // fundo rosa claro
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginTop: 0,
-  },
-  tituloTexto: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#000",
-  },
-  horarioReservado: {
-    backgroundColor: "#E56565",
+  container: { flex: 1, backgroundColor: "#FFF5F5" },
+  tituloContainer: { backgroundColor: "#FFC9C9", padding: 16 },
+  tituloTexto: { fontSize: 18, fontWeight: "bold", color: "#000" },
+  backButton: { padding: 8, margin: 8, alignSelf: "flex-start" },
+  dataContainer: { padding: 10 },
+  label: { fontWeight: "bold", marginVertical: 6 },
+  dateButton: {
     padding: 10,
-    margin: 8,
-    borderRadius: 3,
-    minWidth: 130,
+    backgroundColor: "#ccc",
+    borderRadius: 6,
     alignItems: "center",
+    marginBottom: 10,
   },
-  horarioDisponivel: {
-    backgroundColor: "#ADD7A9",
-    padding: 10,
-    margin: 8,
-    borderRadius: 3,
-    minWidth: 130,
-    alignItems: "center",
+  diasContainer: { padding: 10 },
+  diasButtons: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  dia: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: "#ddd",
+    margin: 4,
   },
-  voltarButton: {
-    width: 100,
-    height: 30,
-    borderRadius: 3,
-    backgroundColor: "#FF3F3F",
-    marginTop: 15,
-    marginLeft: 20,
+  diaSelecionado: { backgroundColor: "red" },
+  textoDia: { fontSize: 14, color: "#333" },
+  textoSelecionado: { color: "#fff", fontWeight: "bold" },
+  horariosGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "center",
+  },
+  horarioBtn: {
+    padding: 12,
+    margin: 6,
+    borderRadius: 6,
+    minWidth: 120,
     alignItems: "center",
   },
-
-  //Modal
+  disponivel: { backgroundColor: "#81c784" },
+  ocupado: { backgroundColor: "#e57373" },
+  selecionado: { backgroundColor: "#fff", borderWidth: 2, borderColor: "red" },
+  horarioTexto: { fontWeight: "bold" },
+  reservarBtn: {
+    backgroundColor: "red",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+  },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
     alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalBox: {
-    width: "85%",
-    backgroundColor: "#F5F7FB", // cor de fundo mais clara
+    width: "88%",
+    backgroundColor: "#fff",
     padding: 20,
-    alignItems: "center",
     borderRadius: 10,
-    padding: 0,
-    paddingBottom: 15,
+    alignItems: "center",
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    backgroundColor: "#B92626", // vermelho forte
-    color: "white",
-    paddingVertical: 8,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    width: "100%",
-    textAlign: "center",
-    marginBottom: 10,
-  },
+  modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 14 },
+  modalButtons: { flexDirection: "row", marginTop: 20 },
   cancelar: {
-    backgroundColor: "#F8BFC0", // rosa claro
+    backgroundColor: "#F8BFC0",
     padding: 10,
     minWidth: 100,
     alignItems: "center",
     borderRadius: 5,
-    marginRight: 5,
+    marginRight: 8,
   },
   confirmar: {
-    backgroundColor: "#A5D6A7", // verde claro
+    backgroundColor: "#66bb6a",
     padding: 10,
     minWidth: 100,
     alignItems: "center",
     borderRadius: 5,
-    marginHorizontal: 5,
-  },
-  icon: {
-    padding: 1,
-    alignSelf: "flex-start",
-    margin: 5,
-    borderRadius: 4,
-    paddingHorizontal: 5,
-    borderColor: "#ddd",
-    right: 0,
+    marginLeft: 8,
   },
 });
