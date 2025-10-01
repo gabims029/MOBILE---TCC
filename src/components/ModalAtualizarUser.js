@@ -57,7 +57,7 @@ const ModalAtualizarUser = ({ visible, onClose, usuario, onSuccess }) => {
           <TextInput
             style={styles.input}
             value={cpf}
-            editable={false} // <- CPF não pode mais ser alterado
+            editable={false} 
           />
 
           <Text style={styles.label}>Nome</Text>

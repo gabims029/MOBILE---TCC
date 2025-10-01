@@ -106,8 +106,6 @@ const Perfil = () => {
           <Text style={styles.buttonText}>Editar Perfil</Text>
         </TouchableOpacity>
 
-        
-
         <TouchableOpacity
           style={styles.button}
           onPress={() => setModalExcluirVisible(true)}
@@ -134,7 +132,11 @@ const Perfil = () => {
           onCancel={() => setModalExcluirVisible(false)}
           onDeleted={() => {
             setModalExcluirVisible(false);
-            navigation.navigate("Perfil")
+            // aqui não volta para Perfil, já que o usuário foi excluído
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Login" }],
+            });
           }}
           usuario={{
             idUsuario: idUsuario,
@@ -215,6 +217,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
 
 export default Perfil;
