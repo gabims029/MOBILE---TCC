@@ -42,7 +42,6 @@ const sheets = {
   deleteReserva: (id) => api.delete(`/reserva/${id}`),
   getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
   getTodasReservas: () => api.get("/reserva"),
-  getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
 };
 export default sheets;
 
