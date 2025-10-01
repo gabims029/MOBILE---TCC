@@ -36,7 +36,7 @@ export default function App() {
         <Stack.Screen name="Cadastro">
           {() => (
             <Layout>
-              <Cadastro {...props} />
+              <Cadastro />
             </Layout>
           )}
         </Stack.Screen>
