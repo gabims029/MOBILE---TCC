@@ -1,4 +1,3 @@
-// ReservaBlocoSecure.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -14,7 +13,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as SecureStore from "expo-secure-store";
 import api from "../axios/axios";
 
-export default function ReservaBlocoSecure({ route }) {
+export default function ReservaBloco({ route }) {
   const { sala } = route.params;
   const hoje = new Date().toISOString().split("T")[0];
   const [idUsuario, setIdUsuario] = useState(null);
@@ -89,42 +88,48 @@ export default function ReservaBlocoSecure({ route }) {
   };
 
   const confirmarReserva = async () => {
-    if (!idUsuario) return;
+  console.log({
+    idUsuario,
+    sala,
+    dataInicio,
+    dataFim,
+    diasSelecionados,
+    horariosSelecionados,
+  });
 
-    if (!dataInicio || !dataFim || diasSelecionados.length === 0 || horariosSelecionados.length === 0) {
-      return Alert.alert("Atenção", "Selecione datas, dias e ao menos um horário.");
+  if (!idUsuario || !dataInicio || !dataFim || diasSelecionados.length === 0 || horariosSelecionados.length === 0) {
+    return Alert.alert("Atenção", "Selecione datas, dias e ao menos um horário.");
+  }
+
+  try {
+    setLoading(true);
+
+    for (const id_periodo of horariosSelecionados) {
+      await api.createReserva({
+        fk_id_user: Number(idUsuario),
+        fk_id_sala: sala.id_sala,
+        fk_id_periodo: id_periodo,
+        dias: diasSelecionados,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
+      });
     }
 
-    if (new Date(dataInicio) > new Date(dataFim)) {
-      return Alert.alert("Atenção", "A data de início não pode ser maior que a data de fim.");
-    }
+    Alert.alert("Sucesso", `Reserva realizada para sala ${sala.numero}`);
+    setHorariosSelecionados([]);
+    setDiasSelecionados([]);
+    setDataInicio(hoje);
+    setDataFim(hoje);
+    setModalVisible(false);
+  } catch (err) {
+    console.log("Erro ao criar reserva:", err?.response?.data || err);
+    const msg = err?.response?.data?.error || "Erro ao processar a reserva";
+    Alert.alert("Erro", msg);
+  } finally {
+    setLoading(false);
+  }
+};
 
-    try {
-      setLoading(true);
-      for (const id_periodo of horariosSelecionados) {
-        await api.createReserva({
-          fk_id_user: idUsuario,
-          fk_id_sala: sala.id_sala,
-          fk_id_periodo: id_periodo,
-          dias: diasSelecionados,
-          data_inicio: dataInicio,
-          data_fim: dataFim,
-        });
-      }
-      Alert.alert("Sucesso", `Reserva realizada para sala ${sala.numero}`);
-      setHorariosSelecionados([]);
-      setDiasSelecionados([]);
-      setDataInicio(hoje);
-      setDataFim(hoje);
-      setModalVisible(false);
-    } catch (err) {
-      console.log("Erro ao criar reserva:", err?.response?.data || err);
-      const msg = err?.response?.data?.error || "Erro ao processar a reserva";
-      Alert.alert("Erro", msg);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const horariosTexto = horariosSelecionados
     .map((id) => {
