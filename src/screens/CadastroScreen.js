@@ -36,7 +36,7 @@ export default function Cadastro() {
         navigation.navigate("Home");
       },
       (error) => {
-        Alert.alert("Erro", error.response?.data?.error || "Erro ao cadastrar");
+        console.log("Erro:", error.response?.data);
       }
     );
   }
