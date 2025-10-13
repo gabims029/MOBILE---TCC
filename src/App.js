@@ -4,15 +4,17 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Login from "./screens/LoginScreen";
 import Cadastro from "./screens/CadastroScreen";
 import Home from "./screens/Home";
-import Reserva from "./screens/ReservaScreen";
+import ReservaBloco from "./screens/ReservaBloco";
+import ReservaData from "./screens/ReservaData";
 import MinhasReservas from "./screens/MinhasReservas";
 import Perfil from "./screens/Perfil";
 import Layout from "./components/MyLayout";
 import CriarSala from "./screens/CriarSala";
 import ListUser from "./screens/ListUser";
 import TodasReservas from "./screens/TodasReservas";
+import PerfilAdmin from "./screens/PerfilAdmin";
 import SalasPorBloco from "./screens/SalasPorBloco";
-import PerfilAdmin from "./screens/PerfilAdmin"; 
+import SalasPorData from "./screens/SalasPorData";
 
 const Stack = createStackNavigator();
 
@@ -24,33 +26,41 @@ export default function App() {
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="Login">
-          {() => (
+          {(props) => (
             <Layout header={1}>
-              <Login />
+              <Login {...props} />
             </Layout>
           )}
         </Stack.Screen>
 
         <Stack.Screen name="Cadastro">
-          {() => (
+          {(props) => (
             <Layout>
-              <Cadastro />
+              <Cadastro {...props} />
             </Layout>
           )}
         </Stack.Screen>
 
         <Stack.Screen name="Home">
-          {() => (
+          {(props) => (
             <Layout>
-              <Home />
+              <Home {...props} />
             </Layout>
           )}
         </Stack.Screen>
 
-        <Stack.Screen name="Reserva">
+        <Stack.Screen name="ReservaBloco">
           {(props) => (
             <Layout>
-              <Reserva {...props} />
+              <ReservaBloco {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="ReservaData">
+          {(props) => (
+            <Layout>
+              <ReservaData {...props} />
             </Layout>
           )}
         </Stack.Screen>
@@ -94,25 +104,31 @@ export default function App() {
             </Layout>
           )}
         </Stack.Screen>
-        <Stack.Screen
-          name="SalasPorBloco"
-          component={(props) => (
+
+        <Stack.Screen name="SalasPorBloco">
+          {(props) => (
             <Layout>
               <SalasPorBloco {...props} />
             </Layout>
           )}
-        />
-        <Stack.Screen
-          name="PerfilAdmin"
-          component={(props) => (
+        </Stack.Screen>
+
+        <Stack.Screen name="SalasPorData">
+          {(props) => (
+            <Layout>
+              <SalasPorData {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="PerfilAdmin">
+          {(props) => (
             <Layout>
               <PerfilAdmin {...props} />
             </Layout>
           )}
-        />
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-

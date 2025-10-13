@@ -26,7 +26,7 @@ export default function Home() {
   }, []);
 
   const handleSalaSelect = (sala) => {
-    navigation.navigate("Reserva", { sala: sala, idUsuario: idUsuario });
+    navigation.navigate("ReservaBloco", { sala: sala, idUsuario: idUsuario });
   };
 
   const getSecureData = async () => {

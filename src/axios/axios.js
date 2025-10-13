@@ -8,6 +8,7 @@ const api = axios.create({
   },
 });
 
+// Intercepta todas as requisições e adiciona o token, se existir
 api.interceptors.request.use(
   async (config) => {
     const token = await SecureStore.getItemAsync("token");
@@ -20,23 +21,28 @@ api.interceptors.request.use(
 );
 
 const sheets = {
+  // Usuário
   postLogin: (user) => api.post("/user/login", user),
-  postCadastro: (user) => api.post("/user", user),
-  deleteUser: (id) => api.delete(`/user/${id}`),
+  postCadastro:(user) => api.post("User/",user),
   getUser: (id) => api.get(`/user/${id}`),
-  updateUser: (user) => api.put(`/user`, user),
-  getUsuarios: () => api.get("/user"),
+  updateUser: (user) => api.put("/user", user),
+  deleteUser: (id) => api.delete(`/user/${id}`),
+  getUsuarios: () => api.get("/user"), 
 
-  postSalas: (sala) => api.post("/sala", sala),
-  getSalas: () => api.get("/sala"),
+  // Salas
+  getSalas:(sala) => api.get("/sala", sala),
+  postSalas:(sala) => api.post("/sala/", sala),
   getSalasPorBloco: (bloco) => api.get(`/sala/${bloco}`),
+  getSalasPorData: (data) => api.get(`/sala/${data}`),
+  getHorarios: ({ id_sala, data }) => api.get(`/reserva/horarios/${id_sala}/${data}`),
 
-  getHorarios: ({ id_sala, data }) =>
-    api.get(`/reserva/horarios/${id_sala}/${data}`),
+  // Reservas
+  getHorarios: ({ id_sala, data }) =>api.get(`/reserva/horarios/${id_sala}/${data}`),
   confirmarReserva: (reserva) => api.post("/reserva", reserva),
   deleteReserva: (id) => api.delete(`/reserva/${id}`),
   getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
-  getTodasReservas: () => api.get(`/reserva`),
+  getTodasReservas: () => api.get("/reserva"),
+  getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
 };
-
 export default sheets;
+
