@@ -23,18 +23,23 @@ export default function TodasReservas() {
   }, []);
 
   async function getTodasReservas() {
-    await api.getTodasReservas().then(
-      (response) => {
-        console.log(response.data);
-        setReservas(response.data.reservas || []);
-      },
-      (error) => {
-        Alert.alert(
-          "Erro",
-          error.response?.data?.error || "Erro ao buscar reservas."
-        );
-      }
-    );
+    try {
+      const response = await api.getTodasReservas();
+      console.log("Resposta da API:", response.data);
+
+      // Extrai todas as reservas dos dias da semana
+      const schedulesByDay = response.data.schedulesByDay || {};
+      const todasReservas = Object.values(schedulesByDay).flat();
+
+      console.log("Reservas processadas:", todasReservas);
+      setReservas(todasReservas);
+    } catch (error) {
+      console.error("Erro ao buscar reservas:", error);
+      Alert.alert(
+        "Erro",
+        error.response?.data?.error || "Erro ao buscar reservas."
+      );
+    }
   }
 
   const handleReservaSelect = (reserva) => {
@@ -50,22 +55,32 @@ export default function TodasReservas() {
           {reservas.length === 0 ? (
             <Text style={styles.noReserva}>Nenhuma reserva encontrada.</Text>
           ) : (
-            reservas.map((reserva) => (
+            reservas.map((reserva, index) => (
               <TouchableOpacity
-                key={reserva.id_reserva}
+                // 🔧 Aqui foi feita a correção para garantir chave única
+                key={`${reserva.id_reserva || reserva.id || 'reserva'}-${index}`}
                 style={styles.roomCard}
                 onPress={() => handleReservaSelect(reserva)}
               >
                 <View style={styles.roomHeader}>
-                  <Text style={styles.roomTitle}>{reserva.descricao}</Text>
+                  <Text style={styles.roomTitle}>
+                    {reserva.classroomName ||
+                      reserva.descricao ||
+                      "Sala não identificada"}
+                  </Text>
                 </View>
-                <Text style={styles.roomTitle2}>Data: {reserva.data}</Text>
+
                 <Text style={styles.roomTitle2}>
-                  Início: {reserva.horarioInicio}
+                  Data Início: {reserva.dataInicio || "-"}
                 </Text>
-                <Text style={styles.roomTitle2}>Fim: {reserva.horarioFim}</Text>
                 <Text style={styles.roomTitle2}>
-                  Usuário: {reserva.nomeUsuario}
+                  Data Fim: {reserva.dataFim || "-"}
+                </Text>
+                <Text style={styles.roomTitle2}>
+                  Usuário: {reserva.nome || reserva.nomeUsuario || "-"}
+                </Text>
+                <Text style={styles.roomTitle2}>
+                  Sala: {reserva.classroomName || "-"}
                 </Text>
               </TouchableOpacity>
             ))
