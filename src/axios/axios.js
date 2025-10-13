@@ -2,7 +2,7 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
 const api = axios.create({
-  baseURL: "http://10.89.240.114:3000/api",
+  baseURL: "http://10.89.240.88:3000/api",
   headers: {
     accept: "application/json",
   },
@@ -41,8 +41,10 @@ const sheets = {
   deleteReserva: (id) => api.delete(`/reserva/${id}`),
   getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
   getTodasReservas: () => api.get("/reserva"),
-  createReserva: () => api.post("/reserva"),
+  createReserva: (data) => {
+    console.log("Dados enviados para createReserva:", data);
+    return api.post("/reserva", data);
+  },
   
 };
 export default sheets;
-
