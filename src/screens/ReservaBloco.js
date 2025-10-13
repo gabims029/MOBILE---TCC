@@ -12,6 +12,8 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as SecureStore from "expo-secure-store";
 import api from "../axios/axios";
+import { FontAwesome } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 export default function ReservaBloco({ route }) {
   const { sala } = route.params;
@@ -28,6 +30,7 @@ export default function ReservaBloco({ route }) {
   const [showPickerFim, setShowPickerFim] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+  const navigation = useNavigation();
 
   // Recupera idUsuario do SecureStore
   useEffect(() => {
@@ -141,65 +144,79 @@ export default function ReservaBloco({ route }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <TouchableOpacity
+  style={styles.backButton}
+  onPress={() => navigation.navigate("SalasPorBloco")}
+>
+  <FontAwesome name="arrow-left" size={24} color="#ddd" />
+</TouchableOpacity>
+
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <View style={styles.tituloContainer}>
-          <Text style={styles.tituloTexto}>
-            Sala: {sala.numero} {sala.descricao ? `- ${sala.descricao}` : ""}
+          <Text style={styles.tituloTexto}>{sala.numero} {sala.descricao ? `- ${sala.descricao}` : ""}
           </Text>
         </View>
 
-        <View style={{ padding: 10 }}>
-          <Text style={{ fontWeight: "bold" }}>Data Início:</Text>
-          <TouchableOpacity style={styles.dateButton} onPress={() => setShowPickerInicio(true)}>
-            <Text>{dataInicio}</Text>
-          </TouchableOpacity>
-          {showPickerInicio && (
-            <DateTimePicker
-              value={new Date(dataInicio)}
-              mode="date"
-              display="default"
-              onChange={onChangeInicio}
-            />
-          )}
+        <View style={styles.datasContainer}>
+  {/* Data Início */}
+  <View style={styles.dataBox}>
+    <Text style={styles.dataLabel}> Data Início:</Text>
+    <TouchableOpacity style={styles.dateButton} onPress={() => setShowPickerInicio(true)}>
+      <Text style={styles.dataText}>{dataInicio}</Text>
+    </TouchableOpacity>
+    {showPickerInicio && (
+      <DateTimePicker
+        value={new Date(dataInicio)}
+        mode="date"
+        display="default"
+        onChange={onChangeInicio}
+      />
+    )}
+  </View>
 
-          <Text style={{ fontWeight: "bold", marginTop: 10 }}>Data Fim:</Text>
-          <TouchableOpacity style={styles.dateButton} onPress={() => setShowPickerFim(true)}>
-            <Text>{dataFim}</Text>
-          </TouchableOpacity>
-          {showPickerFim && (
-            <DateTimePicker
-              value={new Date(dataFim)}
-              mode="date"
-              display="default"
-              onChange={onChangeFim}
-            />
-          )}
-        </View>
+  {/* Data Fim */}
+  <View style={styles.dataBox}>
+    <Text style={styles.dataLabel}>Data Fim:</Text>
+    <TouchableOpacity style={styles.dateButton} onPress={() => setShowPickerFim(true)}>
+      <Text style={styles.dataText}>{dataFim}</Text>
+    </TouchableOpacity>
+    {showPickerFim && (
+      <DateTimePicker
+        value={new Date(dataFim)}
+        mode="date"
+        display="default"
+        onChange={onChangeFim}
+      />
+    )}
+  </View>
+</View>
 
-        <View style={{ padding: 10 }}>
-          <Text style={{ fontWeight: "bold" }}>Dias da semana:</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 5 }}>
-            {diasSemana.map((dia) => {
-              const selecionado = diasSelecionados.includes(dia);
-              return (
-                <TouchableOpacity
-                  key={dia}
-                  style={{
-                    padding: 8,
-                    margin: 4,
-                    borderRadius: 6,
-                    backgroundColor: selecionado ? "red" : "#ddd",
-                  }}
-                  onPress={() => toggleDia(dia)}
-                >
-                  <Text style={{ color: selecionado ? "#fff" : "#000" }}>{dia}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
 
-        <View style={{ padding: 10, flexDirection: "row", flexWrap: "wrap" }}>
+        <View style={styles.diasContainer}>
+  <Text style={styles.diasTitulo}>Dias da semana:</Text>
+  <View style={styles.diasBotoesContainer}>
+    {diasSemana.map((dia) => {
+      const selecionado = diasSelecionados.includes(dia);
+      return (
+        <TouchableOpacity
+          key={dia}
+          style={[
+            styles.diaBotao,
+            { backgroundColor: selecionado ? "#FF6B6B" : "#E0E0E0" },
+          ]}
+          onPress={() => toggleDia(dia)}
+        >
+          <Text style={[styles.diaTexto, { color: selecionado ? "#fff" : "#000" }]}>
+            {dia}
+          </Text>
+        </TouchableOpacity>
+      );
+    })}
+  </View>
+</View>
+
+
+        <View style={{ padding: 10, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", }}>
           {horarios.map((h) => {
             const selecionado = horariosSelecionados.includes(h.id_periodo);
             return (
@@ -209,7 +226,7 @@ export default function ReservaBloco({ route }) {
                   padding: 10,
                   margin: 6,
                   borderRadius: 6,
-                  minWidth: 120,
+                  minWidth: 100,
                   alignItems: "center",
                   backgroundColor:
                     h.status === "ocupado"
@@ -318,7 +335,100 @@ export default function ReservaBloco({ route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFF5F5" },
-  tituloContainer: { backgroundColor: "#FFC9C9", padding: 16 },
-  tituloTexto: { fontSize: 18, fontWeight: "bold", color: "#000" },
-  dateButton: { padding: 10, backgroundColor: "#ccc", borderRadius: 6, marginTop: 5 },
+  tituloContainer: { 
+  backgroundColor: "#FFC9C9", 
+  padding: 12 
+  },
+
+  tituloTexto: { 
+  fontSize: 18, 
+  fontWeight: "bold", 
+  color: "#000" 
+  },
+
+  dateButton: {
+  width: "45%",
+  height: 40,
+  backgroundColor: "#D9D9D9",
+  borderRadius: 8,
+  justifyContent: "center",
+  alignItems: "center",
+  marginTop: 2,
+  marginBottom: 2,
+  },
+  datasContainer: {
+  flexDirection: "row",
+  justifyContent: "space-around",
+  alignItems: "center",
+  marginTop: 10,
+  marginBottom: 10,
+  paddingHorizontal: 8,
+},
+
+dataBox: {
+  flex: 1,
+  alignItems: "center",
+},
+
+dataLabel: {
+  fontWeight: "bold",
+  marginBottom: 5,
+  color: "#000",
+},
+
+dateButton: {
+  width: "80%",
+  height: 40,
+  backgroundColor: "#D9D9D9",
+  borderRadius: 8,
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+dataText: {
+  fontSize: 15,
+  color: "#000",
+  fontWeight: "500",
+},
+
+diasContainer: {
+  alignItems: "center",
+  marginVertical: 10,
+  marginBottom: 25,
+},
+
+diasTitulo: {
+  fontWeight: "bold",
+  fontSize: 16,
+  color: "#000",
+  marginBottom: 8,
+},
+
+diasBotoesContainer: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  justifyContent: "center",
+},
+
+diaBotao: {
+  paddingVertical: 8,
+  paddingHorizontal: 14,
+  margin: 4,
+  borderRadius: 8,
+},
+
+diaTexto: {
+  fontSize: 14,
+  fontWeight: "bold",
+},
+
+//aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
+searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    margin: 10,
+  },
+
 });

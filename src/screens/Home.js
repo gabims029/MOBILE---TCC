@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
-import api from "../axios/axios";
 import { Calendar } from "react-native-calendars";
 
 export default function Home() {
@@ -28,21 +27,28 @@ export default function Home() {
     setIdUsuario(value);
   };
 
-  // Quando clicar em um bloco
   const handleBlocoSelect = (bloco) => {
+    setBlocoSelecionado(bloco);
     navigation.navigate("SalasPorBloco", { bloco, idUsuario });
   };
 
-  //Quando clicar em uma data do calendário
   const handleDateSelect = (date) => {
-    navigation.navigate("SalasPorData", { 
-      dataSelecionada: date.toISOString().split("T")[0]
+    navigation.navigate("SalasPorData", {
+      dataSelecionada: date.toISOString().split("T")[0],
     });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Título */}
+        <Text style={styles.welcomeText}>SEJA BEM-VINDO AO</Text>
+        <Text style={styles.welcomeTextBold}>RESERVAS SENAI</Text>
+
+        {/* Texto de instrução */}
+        <Text style={styles.subTitle}>Selecione um bloco para fazer sua reserva:</Text>
+
+        {/* Botões dos blocos */}
         <View style={styles.roomsRow}>
           {["A", "B", "C", "D"].map((bloco, index) => (
             <TouchableOpacity
@@ -56,7 +62,7 @@ export default function Home() {
               <Text
                 style={[
                   styles.roomButtonText,
-                  blocoSelecionado === bloco && { color: "white" },
+                  blocoSelecionado === bloco && { color: "#FFF" },
                 ]}
               >
                 {bloco}
@@ -65,6 +71,10 @@ export default function Home() {
           ))}
         </View>
 
+        {/* Texto acima do calendário */}
+        <Text style={styles.calendarTitle}>Visualizar salas disponíveis:</Text>
+
+        {/* Calendário */}
         <View style={styles.calendarContainer}>
           <Calendar
             monthFormat={"MMMM yyyy"}
@@ -78,7 +88,7 @@ export default function Home() {
             }}
             onDayPress={(day) => {
               setDataSelecionada(day.dateString);
-              handleDateSelect(new Date(day.dateString)); // navega
+              handleDateSelect(new Date(day.dateString));
             }}
             theme={{
               textMonthFontWeight: "bold",
@@ -97,45 +107,102 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF5F5", // fundo rosado
+    backgroundColor: "#FFECEC", // fundo rosado mais suave
+  },
+  scrollContent: {
+    alignItems: "center",
+    paddingBottom: 40,
   },
 
-  // Linha dos blocos
+  // Cabeçalho
+  header: {
+    width: "100%",
+    backgroundColor: "#CC1E1E",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
+  profileIcon: {
+    width: 35,
+    height: 35,
+    borderRadius: 20,
+    backgroundColor: "#FFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#CC1E1E",
+  },
+  headerTitle: {
+    color: "#FFF",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+
+  // Textos principais
+  welcomeText: {
+    fontSize: 19,
+    fontWeight: "bold",
+    color: "#000",
+    marginTop: 15,
+    textAlign: "center",
+  },
+  welcomeTextBold: {
+    fontSize: 19,
+    fontWeight: "bold",
+    color: "#000",
+    textAlign: "center",
+    marginBottom: 40,
+  },
+  subTitle: {
+    fontSize: 15,
+    color: "#000",
+    marginBottom: 5,
+    textAlign: "center",
+  },
+
+  // Blocos
   roomsRow: {
     flexDirection: "row",
     justifyContent: "space-evenly",
-    marginTop: 35,
-    marginBottom: 80,
+    width: "90%",
+    marginTop: 6,
+    marginBottom: 50,
   },
   roomButton: {
-    backgroundColor: "#FFF", // fundo branco
+    backgroundColor: "#FFF",
     borderColor: "#CC1E1E",
     borderWidth: 1,
-    width: 80,
-    height: 80,
-    borderRadius: 15,
+    width: 70,
+    height: 70,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 3,
-    elevation: 2,
   },
   roomButtonText: {
     color: "#CC1E1E",
-    fontSize: 35,
+    fontSize: 30,
     fontWeight: "bold",
   },
 
   // Calendário
+  calendarTitle: {
+    fontSize: 15,
+    color: "#000",
+    marginBottom: 10,
+    textAlign: "center",
+  },
   calendarContainer: {
     backgroundColor: "#FFF",
-    marginHorizontal: 20,
+    width: "90%",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#CC1E1E",
     padding: 10,
-    marginBottom: 15,
   },
 });
