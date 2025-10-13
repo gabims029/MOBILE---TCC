@@ -12,8 +12,8 @@ import imgPerfil from "../../assets/imgPerfil.png";
 import api from "../axios/axios";
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
-import ModalAtualizarUser from "../components/ModalAtualizarUser";
 import ModalExcluirUser from "../components/ModalExcluirUser";
+import ModalEditarUsuario from "../components/ModalEditarUsuario"; 
 
 const Perfil = () => {
   const navigation = useNavigation();
@@ -25,6 +25,8 @@ const Perfil = () => {
   });
 
   const [idUsuario, setIdUsuario] = useState(null);
+  const [modalEditarVisible, setModalEditarVisible] = useState(false);
+  const [modalExcluirVisible, setModalExcluirVisible] = useState(false);
 
   useEffect(() => {
     const getSecureData = async () => {
@@ -54,9 +56,6 @@ const Perfil = () => {
       console.log(error);
     }
   }
-
-  const [modalAtualizarVisible, setModalAtualizarVisible] = useState(false);
-  const [modalExcluirVisible, setModalExcluirVisible] = useState(false);
 
   return (
     <View style={styles.content}>
@@ -101,7 +100,7 @@ const Perfil = () => {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setModalAtualizarVisible(true)}
+          onPress={() => setModalEditarVisible(true)}
         >
           <Text style={styles.buttonText}>Editar Perfil</Text>
         </TouchableOpacity>
@@ -113,26 +112,21 @@ const Perfil = () => {
           <Text style={styles.buttonText}>Deletar Perfil</Text>
         </TouchableOpacity>
 
-        <ModalAtualizarUser
-          visible={modalAtualizarVisible}
-          onClose={() => setModalAtualizarVisible(false)}
-          usuario={{
-            nome: user.nome,
-            email: user.email,
-            senha: user.senha,
-            cpf: user.cpf,
-            id_usuario: idUsuario,
-          }}
-          onSuccess={() => carregarDadosUsuario(idUsuario)}
+        {/* ✅ Modal de edição */}
+        <ModalEditarUsuario
+          visible={modalEditarVisible}
+          onClose={() => setModalEditarVisible(false)}
+          userId={idUsuario}
+          onUpdated={() => carregarDadosUsuario(idUsuario)}
         />
 
+        {/* Modal de exclusão */}
         <ModalExcluirUser
           visible={modalExcluirVisible}
           onClose={() => setModalExcluirVisible(false)}
           onCancel={() => setModalExcluirVisible(false)}
           onDeleted={() => {
             setModalExcluirVisible(false);
-            // aqui não volta para Perfil, já que o usuário foi excluído
             navigation.reset({
               index: 0,
               routes: [{ name: "Login" }],
