@@ -29,10 +29,9 @@ export default function SalasPorData() {
   }, []);
 
   const handleSalaSelect = (sala) => {
-    navigation.navigate("ReservaData", { 
+    navigation.navigate("ReservaBloco", { 
       sala: sala, 
       idUsuario: idUsuario, 
-      data: dataSelecionada 
     });
   };
 
@@ -82,7 +81,7 @@ export default function SalasPorData() {
 
         </View>
         <Text style={styles.dataTitulo}>
-          Data escolhida: {new Date(dataSelecionada).toLocaleDateString("pt-BR")}
+          Data selecionada: {new Date(dataSelecionada).toLocaleDateString("pt-BR")}
         </Text>
 
         <View style={styles.roomsGrid}>
@@ -93,11 +92,11 @@ export default function SalasPorData() {
               onPress={() => handleSalaSelect(sala)}
             >
               <View style={styles.roomHeader}>
-                <Text style={styles.roomTitle}>{sala.descricao}</Text>
+                <Text style={styles.roomTitle}>{sala.numero}</Text>
               </View>
-              <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
+              <Text style={styles.roomTitle2}>{sala.descricao}</Text>
               <Text style={styles.roomTitle2}>Capacidade: {sala.capacidade}</Text>
-              <Text style={styles.roomTitle2}>N° da sala: {sala.numero}</Text>
+              <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -132,18 +131,18 @@ const styles = StyleSheet.create({
   },
   roomHeader: {
     backgroundColor: "#CC1E1E",
-    padding: 8,
+    padding: 10,
   },
   roomTitle: {
     color: "white",
     fontWeight: "bold",
     fontSize: 14,
-    padding: 2,
+    padding: 0,
   },
   roomTitle2: {
     color: "black",
     fontWeight: "bold",
-    fontSize: 14,
+    fontSize: 12,
     padding: 2,
   },
   searchContainer: {
