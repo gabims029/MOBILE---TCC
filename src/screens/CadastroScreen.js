@@ -13,8 +13,6 @@ import Logo from "../../assets/logosenai.png";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
-import Menu from "../components/Menu";
-// import * as ImagePicker from "expo-image-picker"; // ← COMENTE esta linha também
 
 export default function Cadastro() {
   const [user, setUser] = useState({
@@ -26,57 +24,21 @@ export default function Cadastro() {
     showPassord: true,
   });
 
-  // const [foto, setFoto] = useState(null); // ← COMENTE esta linha
-  const [menuVisible, setMenuVisible] = useState(false);
-
   const navigation = useNavigation();
 
-  // async function escolherFoto() {
-  //   const result = await ImagePicker.launchImageLibraryAsync({
-  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  //     quality: 1,
-  //   });
-
-  //   if (!result.canceled) {
-  //     setFoto(result.assets[0]); // pega primeira imagem
-  //   }
-  // }
-
   async function handleCadastro() {
-    const formData = new FormData();
-    formData.append("nome", user.nome);
-    formData.append("email", user.email);
-    formData.append("cpf", user.cpf);
-    formData.append("senha", user.senha);
-    formData.append("tipo", user.tipo);
-
-    // if (foto) {
-    //   formData.append("foto", {
-    //     uri: foto.uri,
-    //     name: "profile.jpg",
-    //     type: "image/jpeg",
-    //   });
-    // }
-
-    try {
-      const response = await api.post("/user", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      Alert.alert("OK", response.data.message);
-      navigation.navigate("Home");
-    } catch (error) {
-      console.log(error.response?.data);
-      Alert.alert("Erro", error.response?.data?.error || "Erro ao cadastrar");
-    }
+    await api.postCadastro(user).then(
+      (response) => {
+        Alert.alert("OK", response.data.message);
+        navigation.navigate("Home");
+      },
+      (error) => {
+        Alert.alert("Erro", error.response.data.error);
+      }
+    );
   }
-
-  return (
+  return (      
     <View style={styles.content}>
-      <TouchableOpacity
-        style={styles.menuButton}
-        onPress={() => setMenuVisible(true)}
-      />
-
       <View style={styles.cadastroCard}>
         <View style={styles.logoContainer}>
           <View style={styles.logoWrapper}>
@@ -87,23 +49,6 @@ export default function Cadastro() {
             />
           </View>
         </View>
-
-        {/*
-        ==== BLOCO DE FOTO COMENTADO ====
-        <TouchableOpacity onPress={escolherFoto} style={styles.fotoButton}>
-          <Text style={{ color: "white" }}>
-            {foto ? "Foto selecionada" : "Escolher Foto"}
-          </Text>
-        </TouchableOpacity>
-
-        {foto && (
-          <Image
-            source={{ uri: foto.uri }}
-            style={{ width: 100, height: 100, borderRadius: 50, marginVertical: 10 }}
-          />
-        )}
-        ==================================
-        */}
 
         <TextInput
           style={styles.input}
@@ -161,12 +106,92 @@ export default function Cadastro() {
           </Picker>
         </View>
 
-        <TouchableOpacity onPress={handleCadastro} style={styles.cadastrarButton}>
+        <TouchableOpacity
+          onPress={handleCadastro}
+          style={styles.cadastrarButton}
+        >
           <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
         </TouchableOpacity>
       </View>
-
-      <Menu visible={menuVisible} onClose={() => setMenuVisible(false)} />
     </View>
-  );
-}
+    );
+  }
+  
+  const styles = StyleSheet.create({
+    content: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 20,
+    },
+    cadastroCard: {
+      backgroundColor: "#CC1E1E",
+      width: "90%",
+      borderRadius: 10,
+      padding: 20,
+      alignItems: "center",
+    },
+    logoContainer: {
+      justifyContent: "center",
+      alignItems: "center",
+      marginVertical: 15,
+      width: "100%",
+    },
+    logoWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "100%",
+    },
+    input: {
+      width: "100%",
+      height: 45,
+      backgroundColor: "white",
+      borderRadius: 25,
+      marginVertical: 8,
+      paddingHorizontal: 15,
+    },
+    cadastrarButton: {
+      width: "100%",
+      height: 45,
+      backgroundColor: "#FF3F3F",
+      borderRadius: 25,
+      marginTop: 15,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    cadastrarButtonText: {
+      color: "white",
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    passwordContainer: {
+      width: "100%",
+      height: 45,
+      backgroundColor: "white",
+      borderRadius: 25,
+      marginVertical: 8,
+      paddingHorizontal: 15,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingRight: 10,
+    },
+    passwordInput: {
+      flex: 1,
+      height: 40,
+    },
+    pickerContainer: {
+      width: "100%",
+      height: 45,
+      backgroundColor: "white",
+      borderRadius: 25,
+      marginVertical: 8,
+      paddingHorizontal: 15,
+      justifyContent: "center",
+    },
+    picker: {
+      width: "100%",
+      height: "130%",
+      color: "#888",
+    },
+  });
