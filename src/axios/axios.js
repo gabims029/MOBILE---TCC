@@ -54,8 +54,4 @@ const sheets = {
   getTodasReservas: () => api.get("/reserva"),
 };
 
-  
-
 export default sheets;
-
-

@@ -8,7 +8,8 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import api from "../axios/axios"; // já deve estar configurado
+import { Picker } from "@react-native-picker/picker"; 
+import sheets from "../axios/axios";
 import Logo from "../../assets/logosenai.png";
 import { useNavigation } from "@react-navigation/native";
 
@@ -17,21 +18,20 @@ export default function CriarSala() {
     numero: "",
     descricao: "",
     capacidade: "",
-    bloco: "",
+    bloco: "A", // valor inicial padrão
   });
 
   const navigation = useNavigation();
 
   async function handleCriarSala() {
     try {
-      const response = await api.post("/sala", sala);
+      const response = await sheets.postSalas(sala);
+
       Alert.alert("Sucesso", response.data.message);
-      navigation.goBack(); // volta para a tela anterior
+      navigation.goBack();
     } catch (error) {
-      Alert.alert(
-        "Erro",
-        error.response?.data?.error || "Erro ao cadastrar sala"
-      );
+      console.log("Erro ao cadastrar sala:", error.response?.data || error.message);
+      Alert.alert("Erro", error.response?.data?.error || "Erro ao cadastrar sala");
     }
   }
 
@@ -71,12 +71,20 @@ export default function CriarSala() {
           onChangeText={(value) => setSala({ ...sala, capacidade: value })}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Bloco"
-          value={sala.bloco}
-          onChangeText={(value) => setSala({ ...sala, bloco: value })}
-        />
+        {/* Seletor de Bloco */}
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={sala.bloco}
+            onValueChange={(value) => setSala({ ...sala, bloco: value })}
+            style={styles.picker}
+            dropdownIconColor="#fff"
+          >
+            <Picker.Item label="Bloco A" value="A" />
+            <Picker.Item label="Bloco B" value="B" />
+            <Picker.Item label="Bloco C" value="C" />
+            <Picker.Item label="Bloco D" value="D" />
+          </Picker>
+        </View>
 
         <TouchableOpacity
           onPress={handleCriarSala}
@@ -121,6 +129,19 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 25,
     marginVertical: 8,
+    paddingHorizontal: 15,
+  },
+  pickerContainer: {
+    width: "100%",
+    height: 45,
+    backgroundColor: "white",
+    borderRadius: 25,
+    marginVertical: 8,
+    justifyContent: "center",
+  },
+  picker: {
+    width: "100%",
+    color: "#000",
     paddingHorizontal: 15,
   },
   cadastrarButton: {

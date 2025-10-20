@@ -38,11 +38,18 @@ export default function MinhasReservas() {
   async function getReservas(idUsuario) {
     await api.getReservasPorUsuario(idUsuario).then(
       (response) => {
-        console.log(response.data)
-        setReserva(response.data.reservas);
+        console.log("Resposta da API:", response.data);
+        // Ajuste para garantir que estamos lidando com a estrutura esperada.
+        setReserva(
+          Array.isArray(response.data)
+            ? response.data
+            : Object.values(response.data.schedule || {}).flat()
+        );
       },
       (error) => {
-        Alert.alert("Erro",error.response?.data?.error || "Erro ao buscar reservas."
+        Alert.alert(
+          "Erro",
+          error.response?.data?.error || "Erro ao buscar reservas."
         );
       }
     );
@@ -89,15 +96,14 @@ export default function MinhasReservas() {
       </ScrollView>
 
       <ModalDeleteReserva
-  isVisible={modalVisible}
-  onClose={() => setModalVisible(false)}
-  reserva={reservaSelecionada}
-  onDeleted={() => {
-    setModalVisible(false);
-    getReservas(idUsuario);
-  }}
-/>
-
+        isVisible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        reserva={reservaSelecionada}
+        onDeleted={() => {
+          setModalVisible(false);
+          getReservas(idUsuario);
+        }}
+      />
     </SafeAreaView>
   );
 }
