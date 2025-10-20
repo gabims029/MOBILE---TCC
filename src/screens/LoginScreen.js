@@ -66,6 +66,7 @@ export default function Login() {
             style={styles.passwordInput}
             placeholder="Email"
             value={user.email}
+            autoCapitalize="none"
             onChangeText={(value) => {
               setUser({ ...user, email: value });
             }}

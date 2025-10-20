@@ -100,6 +100,7 @@ const PerfilAdmin = () => {
           <Text style={styles.buttonText}>Deletar Perfil</Text>
         </TouchableOpacity>
 
+
         <ModalAtualizarUser
           visible={modalAtualizarVisible}
           onClose={() => setModalAtualizarVisible(false)}

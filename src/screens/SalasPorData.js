@@ -10,29 +10,27 @@ import {
   Alert,
 } from "react-native";
 import api from "../axios/axios";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import { Picker } from "@react-native-picker/picker";
+import { FontAwesome } from "@expo/vector-icons";
 
-export default function Home() {
+export default function SalasPorData() {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { dataSelecionada } = route.params;
+  const [blocoSelecionado, setBlocoSelecionado] = useState("");
   const [salas, setSalas] = useState([]);
   const [idUsuario, setIdUsuario] = useState(null);
-  const [dataSelecionada, setDataSelecionada] = useState("");
 
   useEffect(() => {
     getSalas();
     getSecureData();
   }, []);
 
-  const handleSalaSelect = (sala) => {
-    navigation.navigate("Reserva", { sala: sala, idUsuario: idUsuario });
-  };
-
   const getSecureData = async () => {
     const value = await SecureStore.getItemAsync("id");
     setIdUsuario(value);
-    console.log(value);
   };
 
   async function getSalas() {
@@ -47,13 +45,30 @@ export default function Home() {
     );
   }
 
+  const handleSalaSelect = (sala) => {
+    navigation.navigate("ReservaBloco", {
+      sala: sala,
+      idUsuario: idUsuario,
+    });
+  };
+
+  // Processamento de dados
   const blocos = [...new Set(salas.map((s) => s.bloco))];
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
+        {/* Cabeçalho de busca */}
         <View style={styles.searchContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.navigate("Home")}
+          >
+            <FontAwesome name="arrow-left" size={24} color="#ddd" />
+          </TouchableOpacity>
+
           <TextInput style={styles.searchInput} placeholder="Pesquisar" />
+
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={blocoSelecionado}
@@ -69,52 +84,55 @@ export default function Home() {
           </View>
         </View>
 
-        <View style={styles.roomsGrid}>
-          {salas
-            .filter((sala) =>
-              blocoSelecionado ? sala.bloco === blocoSelecionado : true
-            )
-            .map((sala) => (
-              <TouchableOpacity
-                key={sala.id_sala}
-                style={styles.roomCard}
-                onPress={() => handleSalaSelect(sala)}
-              >
-                <View style={styles.roomHeader}>
-                  <Text style={styles.roomTitle}>{sala.descricao}</Text>
-                </View>
-                <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
-                <Text style={styles.roomTitle2}>
-                  Capacidade: {sala.capacidade}
-                </Text>
-                <Text style={styles.roomTitle2}>N° da sala: {sala.numero}</Text>
-              </TouchableOpacity>
-            ))}
-        </View>
+        {/* Data selecionada */}
+        <Text style={styles.dataTitulo}>
+          Data selecionada:{" "}
+          {new Date(dataSelecionada).toLocaleDateString("pt-BR")}
+        </Text>
 
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Login")}
-          style={styles.sairButton}
-        >
-          <Text>Sair</Text>
-        </TouchableOpacity>
+        {/* Grid de salas */}
+        <View style={styles.roomsGrid}>
+          {salas.map((sala) => (
+            <TouchableOpacity
+              key={sala.id_sala}
+              style={styles.roomCard}
+              onPress={() => handleSalaSelect(sala)}
+            >
+              <View style={styles.roomHeader}>
+                <Text style={styles.roomTitle}>{sala.numero}</Text>
+              </View>
+              <Text style={styles.roomTitle2}>{sala.descricao}</Text>
+              <Text style={styles.roomTitle2}>
+                Capacidade: {sala.capacidade}
+              </Text>
+              <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFF5F5",
+  container: { flex: 1, backgroundColor: "#FFF5F5" },
+
+  dataTitulo: {
+    margin: 15,
+    fontSize: 16,
+    fontWeight: "bold",
   },
+
+  scrollView: { flex: 1 },
+
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
-    marginBottom: 10,
+    marginBottom: 0,
     margin: 10,
   },
+
   searchInput: {
     flex: 1,
     height: 40,
@@ -123,10 +141,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: "#ddd",
-    marginRight: 10,
+    marginRight: 0,
+    right: 18,
   },
+
+  backButton: {
+    padding: 1,
+    alignSelf: "flex-start",
+    margin: 5,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    borderColor: "#ddd",
+    right: 20,
+  },
+
   pickerContainer: {
-    width: 100,
+    width: 70,
     height: 40,
     borderWidth: 1,
     borderColor: "#ddd",
@@ -134,19 +164,19 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     justifyContent: "center",
   },
+
   picker: {
     width: "100%",
     height: "100%",
   },
-  scrollView: {
-    flex: 1,
-  },
+
   roomsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
     paddingHorizontal: 15,
   },
+
   roomCard: {
     backgroundColor: "white",
     borderRadius: 8,
@@ -157,29 +187,23 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     overflow: "hidden",
   },
+
   roomHeader: {
     backgroundColor: "#CC1E1E",
-    padding: 8,
+    padding: 10,
   },
+
   roomTitle: {
     color: "white",
     fontWeight: "bold",
     fontSize: 14,
-    padding: 2,
+    padding: 0,
   },
+
   roomTitle2: {
     color: "black",
     fontWeight: "bold",
-    fontSize: 14,
+    fontSize: 12,
     padding: 2,
-  },
-  sairButton: {
-    width: "90%",
-    height: 30,
-    borderRadius: 3,
-    backgroundColor: "#FF3F3F",
-    margin: 20,
-    justifyContent: "center",
-    alignItems: "center",
   },
 });
