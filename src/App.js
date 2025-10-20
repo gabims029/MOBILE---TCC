@@ -5,7 +5,6 @@ import Login from "./screens/LoginScreen";
 import Cadastro from "./screens/CadastroScreen";
 import Home from "./screens/Home";
 import ReservaBloco from "./screens/ReservaBloco";
-import ReservaData from "./screens/ReservaData";
 import MinhasReservas from "./screens/MinhasReservas";
 import Perfil from "./screens/Perfil";
 import Layout from "./components/MyLayout";
@@ -14,7 +13,7 @@ import ListUser from "./screens/ListUser";
 import TodasReservas from "./screens/TodasReservas";
 import PerfilAdmin from "./screens/PerfilAdmin"; 
 import SalasPorBloco from "./screens/SalasPorBloco";
-import SalasPorData from "./screens/SalasPorData";
+import SalasPorData from './screens/SalasPorData'
 
 const Stack = createStackNavigator();
 
@@ -36,7 +35,7 @@ export default function App() {
         <Stack.Screen name="Cadastro">
           {() => (
             <Layout>
-              <Cadastro {...props} />
+              <Cadastro />
             </Layout>
           )}
         </Stack.Screen>
@@ -112,14 +111,16 @@ export default function App() {
             </Layout>
           )}
         />
+
         <Stack.Screen
           name="SalasPorData"
           component={(props) => (
             <Layout>
-              <SalasPorData />
+              <SalasPorData {...props} />
             </Layout>
           )}
         />
+
         <Stack.Screen
           name="PerfilAdmin"
           component={(props) => (

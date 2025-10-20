@@ -29,12 +29,22 @@ const sheets = {
   deleteUser: (id) => api.delete(`/user/${id}`),
   getUsuarios: () => api.get("/user"), 
 
-  // Salas
-  getSalas: () => api.get("/sala"),
-
   // Reservas
   getHorarios: ({ id_sala, data }) =>
     api.get(`/reserva/horarios/${id_sala}/${data}`),
+  
+  getSalas:(sala) => api.get("/sala", sala),
+  postSalas:(sala) => api.post("/sala/", sala),
+  getSalasPorBloco: (bloco) => api.get(`/sala/${bloco}`),
+  getSalasPorData: (data) => api.get(`/sala/${data}`),   
+  createReserva: (data) => {
+    console.log("Dados enviados para createReserva:", data);
+    return api.post("/reserva", data);
+  },
+};
+
+  // Reservas
+  getAllPeriodos: () => api.get("/periodo"),
   confirmarReserva: (reserva) => api.post("/reserva", reserva),
   deleteReserva: (id) => api.delete(`/reserva/${id}`),
   getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
@@ -42,3 +52,5 @@ const sheets = {
 };
 
 export default sheets;
+  
+

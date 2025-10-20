@@ -18,7 +18,7 @@ import { FontAwesome } from "@expo/vector-icons";
 export default function SalasPorData() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { dataSelecionada } = route.params; // recebe a data vinda da Home
+  const { dataSelecionada } = route.params;
   const [blocoSelecionado, setBlocoSelecionado] = useState("");
   const [salas, setSalas] = useState([]);
   const [idUsuario, setIdUsuario] = useState(null);
@@ -27,14 +27,6 @@ export default function SalasPorData() {
     getSalas();
     getSecureData();
   }, []);
-
-  const handleSalaSelect = (sala) => {
-    navigation.navigate("ReservaData", { 
-      sala: sala, 
-      idUsuario: idUsuario, 
-      data: dataSelecionada 
-    });
-  };
 
   const getSecureData = async () => {
     const value = await SecureStore.getItemAsync("id");
@@ -52,19 +44,31 @@ export default function SalasPorData() {
       }
     );
   }
+
+  const handleSalaSelect = (sala) => {
+    navigation.navigate("ReservaBloco", {
+      sala: sala,
+      idUsuario: idUsuario,
+    });
+  };
+
+  // Processamento de dados
   const blocos = [...new Set(salas.map((s) => s.bloco))];
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
+        {/* Cabeçalho de busca */}
         <View style={styles.searchContainer}>
-        <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.navigate("Home")}
-      >
-        <FontAwesome name="arrow-left" size={24} color="#ddd" />
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.navigate("Home")}
+          >
+            <FontAwesome name="arrow-left" size={24} color="#ddd" />
+          </TouchableOpacity>
+
           <TextInput style={styles.searchInput} placeholder="Pesquisar" />
+
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={blocoSelecionado}
@@ -79,10 +83,14 @@ export default function SalasPorData() {
             </Picker>
           </View>
         </View>
+
+        {/* Data selecionada */}
         <Text style={styles.dataTitulo}>
-          Data escolhida: {new Date(dataSelecionada).toLocaleDateString("pt-BR")}
+          Data selecionada:{" "}
+          {new Date(dataSelecionada).toLocaleDateString("pt-BR")}
         </Text>
 
+        {/* Grid de salas */}
         <View style={styles.roomsGrid}>
           {salas.map((sala) => (
             <TouchableOpacity
@@ -91,11 +99,13 @@ export default function SalasPorData() {
               onPress={() => handleSalaSelect(sala)}
             >
               <View style={styles.roomHeader}>
-                <Text style={styles.roomTitle}>{sala.descricao}</Text>
+                <Text style={styles.roomTitle}>{sala.numero}</Text>
               </View>
+              <Text style={styles.roomTitle2}>{sala.descricao}</Text>
+              <Text style={styles.roomTitle2}>
+                Capacidade: {sala.capacidade}
+              </Text>
               <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
-              <Text style={styles.roomTitle2}>Capacidade: {sala.capacidade}</Text>
-              <Text style={styles.roomTitle2}>N° da sala: {sala.numero}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -106,44 +116,15 @@ export default function SalasPorData() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFF5F5" },
+
   dataTitulo: {
     margin: 15,
     fontSize: 16,
     fontWeight: "bold",
   },
+
   scrollView: { flex: 1 },
-  roomsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    paddingHorizontal: 15,
-  },
-  roomCard: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    width: "48%",
-    height: 130,
-    marginBottom: 15,
-    overflow: "hidden",
-  },
-  roomHeader: {
-    backgroundColor: "#CC1E1E",
-    padding: 8,
-  },
-  roomTitle: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 14,
-    padding: 2,
-  },
-  roomTitle2: {
-    color: "black",
-    fontWeight: "bold",
-    fontSize: 14,
-    padding: 2,
-  },
+
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -151,6 +132,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     margin: 10,
   },
+
   searchInput: {
     flex: 1,
     height: 40,
@@ -162,6 +144,7 @@ const styles = StyleSheet.create({
     marginRight: 0,
     right: 18,
   },
+
   backButton: {
     padding: 1,
     alignSelf: "flex-start",
@@ -171,6 +154,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     right: 20,
   },
+
   pickerContainer: {
     width: 70,
     height: 40,
@@ -180,8 +164,46 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     justifyContent: "center",
   },
+
   picker: {
     width: "100%",
     height: "100%",
+  },
+
+  roomsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+  },
+
+  roomCard: {
+    backgroundColor: "white",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    width: "48%",
+    height: 130,
+    marginBottom: 15,
+    overflow: "hidden",
+  },
+
+  roomHeader: {
+    backgroundColor: "#CC1E1E",
+    padding: 10,
+  },
+
+  roomTitle: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 14,
+    padding: 0,
+  },
+
+  roomTitle2: {
+    color: "black",
+    fontWeight: "bold",
+    fontSize: 12,
+    padding: 2,
   },
 });
