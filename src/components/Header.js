@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { FontAwesome } from '@expo/vector-icons';
-import MenuLateral from "./MenuAdm";
+import MenuLateral from "./Menu";
 
 export default function Header({ header }) {
   const [menuVisible, setMenuVisible] = useState(false);

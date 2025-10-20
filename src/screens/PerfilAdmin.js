@@ -11,6 +11,7 @@ import {
 import imgPerfil from "../../assets/imgPerfil.png";
 import api from "../axios/axios";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import ModalAtualizarUser from "../components/ModalAtualizarUser";
 import ModalExcluirUser from "../components/ModalExcluirUser";
 
 const PerfilAdmin = () => {
@@ -48,6 +49,7 @@ const PerfilAdmin = () => {
     }
   }
 
+  const [modalAtualizarVisible, setModalAtualizarVisible] = useState(false);
   const [modalExcluirVisible, setModalExcluirVisible] = useState(false);
 
   return (
@@ -86,10 +88,31 @@ const PerfilAdmin = () => {
 
         <TouchableOpacity
           style={styles.button}
+          onPress={() => setModalAtualizarVisible(true)}
+        >
+          <Text style={styles.buttonText}>Editar Perfil</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => setModalExcluirVisible(true)}
         >
           <Text style={styles.buttonText}>Deletar Perfil</Text>
         </TouchableOpacity>
+
+
+        <ModalAtualizarUser
+          visible={modalAtualizarVisible}
+          onClose={() => setModalAtualizarVisible(false)}
+          usuario={{
+            nome: user.nome,
+            email: user.email,
+            senha: user.senha,
+            cpf: user.cpf,
+            id_usuario: idUsuario,
+          }}
+          onSuccess={() => carregarDadosUsuario(idUsuario)}
+        />
 
         <ModalExcluirUser
           visible={modalExcluirVisible}

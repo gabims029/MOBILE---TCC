@@ -39,7 +39,7 @@ const ListaUsuarios = () => {
   return (
     <View style={styles.content}>
       <View style={styles.container}>
-        <Text style={styles.title}>USUÁRIOS CADASTRADOS</Text>
+        <Text style={styles.title}> USUÁRIOS CADASTRADOS </Text>
         <FlatList
           data={usuarios}
           keyExtractor={(item) => item.id_user.toString()}
@@ -90,6 +90,7 @@ const styles = StyleSheet.create({
     textAlign: "center", 
      },
 });
+
 
 
 export default ListaUsuarios;
