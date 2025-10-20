@@ -46,14 +46,15 @@ const sheets = {
     console.log("Dados enviados para createReserva:", data);
     return api.post("/reserva", data);
   },
-};
-
   // Reservas
   getAllPeriodos: () => api.get("/periodo"),
   confirmarReserva: (reserva) => api.post("/reserva", reserva),
   deleteReserva: (id) => api.delete(`/reserva/${id}`),
   getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
   getTodasReservas: () => api.get("/reserva"),
+};
+
+  
 
 export default sheets;
 

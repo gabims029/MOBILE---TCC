@@ -88,13 +88,13 @@ export default function App() {
           )}
         </Stack.Screen>
 
-//         <Stack.Screen name="TodasReservas">
-//           {(props) => (
-//             <Layout>
-//               <TodasReservas {...props} />
-//             </Layout>
-//           )}
-//         </Stack.Screen>
+        <Stack.Screen name="TodasReservas">
+          {(props) => (
+            <Layout>
+              <TodasReservas {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
 
         <Stack.Screen name="SalasPorBloco">
           {(props) => (
@@ -104,24 +104,21 @@ export default function App() {
           )}
         </Stack.Screen>
 
-        <Stack.Screen
-          name="SalasPorData"
-          component={(props) => (
+        <Stack.Screen name="SalasPorData">
+          {(props) => (
             <Layout>
               <SalasPorData {...props} />
             </Layout>
           )}
         </Stack.Screen>
 
-        <Stack.Screen
-          name="PerfilAdmin"
-          component={(props) => (
+        <Stack.Screen name="PerfilAdmin">
+          {(props) => (
             <Layout>
               <PerfilAdmin {...props} />
             </Layout>
           )}
-       </Stack.Screen>
-        />
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
