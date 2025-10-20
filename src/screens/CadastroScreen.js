@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
 import Menu from "../components/Menu";
-import * as ImagePicker from "expo-image-picker";
+// import * as ImagePicker from "expo-image-picker"; // ← COMENTE esta linha também
 
 export default function Cadastro() {
   const [user, setUser] = useState({
@@ -26,21 +26,21 @@ export default function Cadastro() {
     showPassord: true,
   });
 
-  const [foto, setFoto] = useState(null);
+  // const [foto, setFoto] = useState(null); // ← COMENTE esta linha
   const [menuVisible, setMenuVisible] = useState(false);
 
   const navigation = useNavigation();
 
-  async function escolherFoto() {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-    });
+  // async function escolherFoto() {
+  //   const result = await ImagePicker.launchImageLibraryAsync({
+  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //     quality: 1,
+  //   });
 
-    if (!result.canceled) {
-      setFoto(result.assets[0]); // pega primeira imagem
-    }
-  }
+  //   if (!result.canceled) {
+  //     setFoto(result.assets[0]); // pega primeira imagem
+  //   }
+  // }
 
   async function handleCadastro() {
     const formData = new FormData();
@@ -50,13 +50,13 @@ export default function Cadastro() {
     formData.append("senha", user.senha);
     formData.append("tipo", user.tipo);
 
-    if (foto) {
-      formData.append("foto", {
-        uri: foto.uri,
-        name: "profile.jpg",
-        type: "image/jpeg",
-      });
-    }
+    // if (foto) {
+    //   formData.append("foto", {
+    //     uri: foto.uri,
+    //     name: "profile.jpg",
+    //     type: "image/jpeg",
+    //   });
+    // }
 
     try {
       const response = await api.post("/user", formData, {
@@ -88,7 +88,8 @@ export default function Cadastro() {
           </View>
         </View>
 
-        {/* Escolher foto */}
+        {/*
+        ==== BLOCO DE FOTO COMENTADO ====
         <TouchableOpacity onPress={escolherFoto} style={styles.fotoButton}>
           <Text style={{ color: "white" }}>
             {foto ? "Foto selecionada" : "Escolher Foto"}
@@ -101,6 +102,8 @@ export default function Cadastro() {
             style={{ width: 100, height: 100, borderRadius: 50, marginVertical: 10 }}
           />
         )}
+        ==================================
+        */}
 
         <TextInput
           style={styles.input}
@@ -167,96 +170,3 @@ export default function Cadastro() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 20,
-    backgroundColor: "#FCECEC",
-  },
-  menuButton: {
-    position: "absolute",
-    top: 50,
-    left: 30,
-    zIndex: 10,
-  },
-  cadastroCard: {
-    backgroundColor: "#CC1E1E",
-    width: "90%",
-    borderRadius: 10,
-    padding: 20,
-    alignItems: "center",
-    marginTop: 80,
-  },
-  logoContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 15,
-    width: "100%",
-  },
-  logoWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-  fotoButton: {
-    backgroundColor: "#FF3F3F",
-    padding: 10,
-    borderRadius: 25,
-    marginVertical: 10,
-  },
-  input: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "white",
-    borderRadius: 25,
-    marginVertical: 8,
-    paddingHorizontal: 15,
-  },
-  cadastrarButton: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "#FF3F3F",
-    borderRadius: 25,
-    marginTop: 15,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cadastrarButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  passwordContainer: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "white",
-    borderRadius: 25,
-    marginVertical: 8,
-    paddingHorizontal: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingRight: 10,
-  },
-  passwordInput: {
-    flex: 1,
-    height: 40,
-  },
-  pickerContainer: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "white",
-    borderRadius: 25,
-    marginVertical: 8,
-    paddingHorizontal: 15,
-    justifyContent: "center",
-  },
-  picker: {
-    width: "100%",
-    height: "130%",
-    color: "#888",
-  },
-});
