@@ -8,33 +8,45 @@ import {
   Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import sheets from "../axios/axios"; // <<< corrigido
+import * as SecureStore from "expo-secure-store";
+import sheets from "../axios/axios";
 
 const ModalExcluirUser = ({ visible, usuario, onCancel, onDeleted, onClose }) => {
   useEffect(() => {
     if (usuario) {
-      console.log("Usuário para excluir:", usuario); // <<< debug
+      console.log("Usuário para excluir:", usuario);
     }
   }, [usuario]);
 
   const navigation = useNavigation();
 
   const handleExcluirUser = async () => {
-    console.log("Usuário recebido no handle:", usuario); // <<< debug extra
+    console.log("Usuário recebido no handle:", usuario);
 
-    // ⚠️ Se no console aparecer "id" em vez de "idUsuario", troque aqui
-    const id = usuario?.idUsuario; 
+    // Tenta pegar o ID em diferentes formatos
+    const id = usuario?.id || usuario?.idUsuario || usuario?.id_usuario;
+
     if (!id) {
       Alert.alert("Erro", "ID do usuário não encontrado.");
       return;
     }
 
     try {
-      await sheets.deleteUser(id); // <<< corrigido
+      await sheets.deleteUser(id);
       Alert.alert("Sucesso", "Usuário deletado com sucesso.");
+
+      // Remove dados do usuário salvo no SecureStore
+      await SecureStore.deleteItemAsync("token");
+      await SecureStore.deleteItemAsync("id");
+
       onDeleted?.();
       onClose?.();
-      navigation.navigate("Login");
+
+      // Redireciona para tela de Login
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
     } catch (error) {
       console.log("Erro ao deletar:", error.response?.data || error.message);
       Alert.alert(
