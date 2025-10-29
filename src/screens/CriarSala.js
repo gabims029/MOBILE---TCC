@@ -18,7 +18,7 @@ export default function CriarSala() {
     numero: "",
     descricao: "",
     capacidade: "",
-    bloco: "A", // valor inicial padrão
+    bloco: "A",
   });
 
   const navigation = useNavigation();

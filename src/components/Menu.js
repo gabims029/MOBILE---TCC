@@ -47,8 +47,8 @@ export default function Menu({ visible, onClose }) {
             <Text style={styles.item}>Meu Perfil</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => handleNavigate("TodasReservas")}>
-            <Text style={styles.item}>Consultar Reservas</Text>
+          <TouchableOpacity onPress={() => handleNavigate("MinhasReservas")}>
+            <Text style={styles.item}>Minhas Reservas</Text>
           </TouchableOpacity>
           {tipo === "admin" && (
             <>
