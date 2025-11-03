@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import ModalExcluirUser from "../components/ModalExcluirUser";
 import ModalEditarUsuario from "../components/ModalEditarUsuario"; 
+import { FontAwesome } from "@expo/vector-icons";
 
 const Perfil = () => {
   const navigation = useNavigation();
@@ -59,6 +60,12 @@ const Perfil = () => {
 
   return (
     <View style={styles.content}>
+      <TouchableOpacity
+  style={styles.backButton}
+  onPress={() => navigation.navigate("Home")}
+>
+  <FontAwesome name="arrow-left" size={24} color="#ddd" />
+</TouchableOpacity>
       <View style={styles.perfilCard}>
         <Text style={styles.title}>MEU PERFIL</Text>
 
@@ -210,6 +217,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
+  backButton: {
+  padding: 1,
+  alignSelf: "flex-start",
+  margin: 5,
+  borderRadius: 4,
+  paddingHorizontal: 1,
+  borderColor: "#ddd",
+  right: 20,
+},
+
 });
 
 export default Perfil;

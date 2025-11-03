@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import api from "../axios/axios"; 
 import { useNavigation } from "@react-navigation/native";
+import { FontAwesome } from "@expo/vector-icons";
 
 const ListaUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -38,6 +39,13 @@ const ListaUsuarios = () => {
 
   return (
     <View style={styles.content}>
+      <TouchableOpacity
+  style={styles.backButton}
+  onPress={() => navigation.navigate("Home")}
+>
+  <FontAwesome name="arrow-left" size={24} color="#ddd" />
+</TouchableOpacity>
+
       <View style={styles.container}>
         <Text style={styles.title}> USUÁRIOS CADASTRADOS </Text>
         <FlatList
@@ -89,6 +97,16 @@ const styles = StyleSheet.create({
     color: "#333",
     textAlign: "center", 
      },
+     backButton: {
+  padding: 1,
+  alignSelf: "flex-start",
+  margin: 5,
+  borderRadius: 4,
+  paddingHorizontal: 20,
+  borderColor: "#ddd",
+  right: 20,
+},
+
 });
 
 

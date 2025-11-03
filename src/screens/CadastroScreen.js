@@ -13,6 +13,7 @@ import Logo from "../../assets/logosenai.png";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
+import { FontAwesome } from "@expo/vector-icons";
 
 export default function Cadastro() {
   const [user, setUser] = useState({
@@ -39,6 +40,13 @@ export default function Cadastro() {
   }
   return (      
     <View style={styles.content}>
+      <TouchableOpacity
+  style={styles.backButton}
+  onPress={() => navigation.navigate("Home")}
+>
+  <FontAwesome name="arrow-left" size={24} color="#ddd" />
+</TouchableOpacity>
+
       <View style={styles.cadastroCard}>
         <View style={styles.logoContainer}>
           <View style={styles.logoWrapper}>
@@ -194,4 +202,14 @@ export default function Cadastro() {
       height: "130%",
       color: "#888",
     },
-  });
+   backButton: {
+  padding: 1,
+  alignSelf: "flex-start",
+  margin: 5,
+  borderRadius: 4,
+  paddingHorizontal: 2,
+  borderColor: "#ddd",
+  right: 20,
+   top: -85, 
+},
+});

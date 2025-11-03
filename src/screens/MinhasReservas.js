@@ -22,7 +22,7 @@ export default function MinhasReservas() {
   const carregarReservas = async () => {
     try {
       setLoading(true);
-      const idUsuario = await SecureStore.getItemAsync("id_usuario");
+      const idUsuario = await SecureStore.getItemAsync("id");
 
       if (!idUsuario) {
         Alert.alert("Erro", "ID do usuário não encontrado.");
@@ -30,7 +30,7 @@ export default function MinhasReservas() {
         return;
       }
 
-      const response = await api.get(`/reserva/usuario/${idUsuario}`);
+      const response = await api.getSchedulesByUserID(idUsuario);
 
       setReservas(response.data.schedule || {});
     } catch (error) {

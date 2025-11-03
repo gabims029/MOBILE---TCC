@@ -12,6 +12,7 @@ import { Picker } from "@react-native-picker/picker";
 import sheets from "../axios/axios";
 import Logo from "../../assets/logosenai.png";
 import { useNavigation } from "@react-navigation/native";
+import { FontAwesome } from "@expo/vector-icons";
 
 export default function CriarSala() {
   const [sala, setSala] = useState({
@@ -37,6 +38,13 @@ export default function CriarSala() {
 
   return (
     <View style={styles.content}>
+      <TouchableOpacity
+  style={styles.backButton}
+  onPress={() => navigation.navigate("Home")}
+>
+  <FontAwesome name="arrow-left" size={24} color="#ddd" />
+</TouchableOpacity>
+
       <View style={styles.cadastroCard}>
         <View style={styles.logoContainer}>
           <View style={styles.logoWrapper}>
@@ -158,4 +166,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  backButton: {
+  padding: 1,
+  alignSelf: "flex-start",
+  margin: 5,
+  borderRadius: 4,
+  paddingHorizontal: 1,
+  borderColor: "#ddd",
+  right: 20,
+  top:-120,
+},
+
 });

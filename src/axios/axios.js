@@ -2,12 +2,11 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
 const api = axios.create({
-  baseURL: "http://10.89.240.76:3000/api",
+  baseURL: "http://10.89.240.88:3000/api",
   headers: {
     accept: "application/json",
   },
 });
-
 // Intercepta todas as requisições e adiciona o token, se existir
 api.interceptors.request.use(
   async (config) => {
@@ -48,10 +47,10 @@ const sheets = {
   },
   // Reservas
   getAllPeriodos: () => api.get("/periodo"),
-  confirmarReserva: (reserva) => api.post("/reserva", reserva),
-  deleteReserva: (id) => api.delete(`/reserva/${id}`),
-  getReservasPorUsuario: (id) => api.get(`/reserva/usuario/${id}`),
-  getTodasReservas: () => api.get("/reserva"),
+  confirmarReserva: (reserva) => api.post("/schedule", reserva),
+  getTodasReservas: () => api.get("/schedule"),
+  getSchedulesByUserID: (id) => api.get(`/schedule/usuario/${id}`),
+  deleteSchedule: (id) => api.delete(`/schedule/${id}`),
 };
 
 export default sheets;
