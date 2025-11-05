@@ -10,7 +10,6 @@ import {
 import api from "../axios/axios";
 
 const ModalDeleteReserva = ({ isVisible, onClose, reserva, onDeleted }) => {
-
   useEffect(() => {
     if (reserva) {
       console.log("Reserva selecionada para deletar:", reserva);
@@ -18,11 +17,14 @@ const ModalDeleteReserva = ({ isVisible, onClose, reserva, onDeleted }) => {
   }, [reserva]);
 
   const handleDeleteReserva = async () => {
-    const id = reserva?.id_reserva;
+    const id =
+      reserva?.id_reserva ||
+      reserva?.periodos?.[0]?.id_reserva;
     if (!id) {
       Alert.alert("Erro", "ID da reserva não encontrado.");
       return;
     }
+
     try {
       console.log("Deletando reserva com ID:", id);
       await api.deleteReserva(id);
@@ -40,6 +42,14 @@ const ModalDeleteReserva = ({ isVisible, onClose, reserva, onDeleted }) => {
 
   if (!reserva) return null;
 
+  const nomeSala = reserva?.nomeSala || reserva?.nomeSalaDisplay || "—";
+  const descricao = reserva?.descricao || reserva?.descricaoDetalhe || "—";
+  const data = reserva?.data || "—";
+  const horarioInicio =
+    reserva?.horarioInicio || reserva?.periodos?.[0]?.horario_inicio || "—";
+  const horarioFim =
+    reserva?.horarioFim || reserva?.periodos?.[0]?.horario_fim || "—";
+
   return (
     <Modal visible={isVisible} transparent animationType="fade">
       <View style={styles.overlay}>
@@ -49,10 +59,11 @@ const ModalDeleteReserva = ({ isVisible, onClose, reserva, onDeleted }) => {
           </View>
 
           <View style={styles.body}>
-            <Text style={styles.info}>SALA: {reserva?.nomeSala || reserva?.descricao}</Text>
-            <Text style={styles.info}>DATA: {reserva?.data}</Text>
+            <Text style={styles.info}>SALA: {nomeSala}</Text>
+            <Text style={styles.info}>DESCRIÇÃO: {descricao}</Text>
+            <Text style={styles.info}>DATA: {data}</Text>
             <Text style={styles.info}>
-              HORÁRIO: {reserva?.horarioInicio} - {reserva?.horarioFim}
+              HORÁRIO: {horarioInicio} - {horarioFim}
             </Text>
 
             <View style={styles.actions}>
@@ -99,7 +110,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#fff",
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "bold",
   },
   body: {
@@ -107,10 +118,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   info: {
-    fontSize: 20,
+    fontSize: 18,
     color: "#000",
     fontWeight: "500",
-    marginBottom: 5,
+    marginBottom: 6,
   },
   actions: {
     flexDirection: "row",
