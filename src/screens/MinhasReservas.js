@@ -23,7 +23,6 @@ export default function MinhasReservas() {
     try {
       setLoading(true);
       const idUsuario = await SecureStore.getItemAsync("id");
-
       if (!idUsuario) {
         Alert.alert("Erro", "ID do usuário não encontrado.");
         setLoading(false);
@@ -31,8 +30,7 @@ export default function MinhasReservas() {
       }
 
       const response = await api.getSchedulesByUserID(idUsuario);
-
-      setReservas(response.data.schedule || {});
+      setReservas(response.data.reservas || {});
     } catch (error) {
       console.log("Erro ao carregar reservas:", error);
       Alert.alert(
@@ -53,24 +51,34 @@ export default function MinhasReservas() {
     await carregarReservas();
   };
 
-  const renderReservaCard = (reserva) => (
-    <TouchableOpacity
-      key={reserva.id}
-      style={styles.card}
-      onPress={() => {
-        setReservaSelecionada(reserva);
-        setModalVisible(true);
-      }}
-    >
-      <Text style={styles.sala}>{reserva.classroomName || "Sala"}</Text>
-      <Text style={styles.text}>
-        Início: {new Date(reserva.horaInicio).toLocaleDateString()}
-      </Text>
-      <Text style={styles.text}>
-        Fim: {new Date(reserva.horaFim).toLocaleDateString()}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderReservaCard = (reserva) => {
+    const passou = reserva.periodos.some((p) => p.passou);
+    return (
+      <TouchableOpacity
+        key={reserva.nomeSalaDisplay + reserva.descricaoDetalhe}
+        style={[styles.card, passou && styles.cardPassado]}
+        onPress={() => {
+          setReservaSelecionada(reserva);
+          setModalVisible(true);
+        }}
+      >
+        <View style={styles.cardHeader}>
+          <Text style={styles.sala}>{reserva.nomeSalaDisplay}</Text>
+        </View>
+
+        <View style={styles.cardBody}>
+          <Text style={styles.descricao}>{reserva.descricaoDetalhe}</Text>
+          {reserva.periodos.map((p, index) => (
+            <View key={index} style={styles.periodoBadge}>
+              <Text style={styles.periodoTexto}>
+                {p.horario_inicio} - {p.horario_fim}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
@@ -80,6 +88,12 @@ export default function MinhasReservas() {
       </View>
     );
   }
+
+  const getDiaSemana = (dataStr) => {
+    const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+    const data = new Date(dataStr + "T00:00:00");
+    return dias[data.getDay()];
+  };
 
   const diasComReservas = Object.keys(reservas).filter(
     (dia) => reservas[dia].length > 0
@@ -93,7 +107,9 @@ export default function MinhasReservas() {
         ) : (
           diasComReservas.map((dia) => (
             <View key={dia} style={styles.diaContainer}>
-              <Text style={styles.diaTitulo}>{dia}</Text>
+              <Text style={styles.diaTitulo}>
+                {getDiaSemana(dia)} - {dia}
+              </Text>
               <View style={styles.listaReservas}>
                 {reservas[dia].map((reserva) => renderReservaCard(reserva))}
               </View>
@@ -125,40 +141,67 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   diaTitulo: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#B11010",
     marginBottom: 10,
     textAlign: "center",
+    backgroundColor: "#FFD3D3",
+    borderRadius: 10,
+    paddingVertical: 6,
   },
   listaReservas: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 10,
+    justifyContent: "space-between",
   },
   card: {
     backgroundColor: "#fff",
     borderRadius: 10,
-    width: 150,
-    padding: 10,
-    margin: 5,
+    flexBasis: "48%", // duas colunas
+    maxWidth: "48%",
+    marginBottom: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
-    elevation: 4,
+    elevation: 3,
+  },
+  cardPassado: {
+    opacity: 0.6,
+  },
+  cardHeader: {
+    backgroundColor: "#B11010",
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    paddingVertical: 6,
+    alignItems: "center",
+  },
+  cardBody: {
+    padding: 10,
     alignItems: "center",
   },
   sala: {
+    color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
-    color: "#B11010",
-    marginBottom: 5,
+  },
+  descricao: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
+    marginBottom: 8,
     textAlign: "center",
   },
-  text: {
-    fontSize: 14,
-    textAlign: "center",
+  periodoBadge: {
+    backgroundColor: "#FFD3D3",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: 4,
+  },
+  periodoTexto: {
+    color: "#B11010",
+    fontWeight: "600",
   },
   emptyText: {
     textAlign: "center",

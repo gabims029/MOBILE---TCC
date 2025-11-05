@@ -95,15 +95,6 @@ export default function ReservaBloco({ route }) {
 
   // Confirmar reserva
   const confirmarReserva = async () => {
-    console.log({
-      idUsuario,
-      sala,
-      dataInicio,
-      dataFim,
-      diasSelecionados,
-      horariosSelecionados,
-    });
-
     if (
       !idUsuario ||
       !dataInicio ||
