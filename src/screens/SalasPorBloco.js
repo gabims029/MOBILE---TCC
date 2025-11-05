@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
 import { FontAwesome } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
@@ -17,10 +17,13 @@ import api from "../axios/axios";
 
 export default function SalasPorBloco() {
   const navigation = useNavigation();
+  const route = useRoute();
+
+  const { bloco: blocoInicial, idUsuario: idUsuarioParam } = route.params || {};
 
   const [salas, setSalas] = useState([]);
-  const [idUsuario, setIdUsuario] = useState(null);
-  const [blocoSelecionado, setBlocoSelecionado] = useState("");
+  const [idUsuario, setIdUsuario] = useState(idUsuarioParam || null);
+  const [blocoSelecionado, setBlocoSelecionado] = useState(blocoInicial || "");
 
   useEffect(() => {
     getSalas();
@@ -29,26 +32,27 @@ export default function SalasPorBloco() {
 
   const getSecureData = async () => {
     const value = await SecureStore.getItemAsync("id");
-    setIdUsuario(value);
+    if (value) setIdUsuario(value);
   };
 
   async function getSalas() {
-    await api.getSalas().then(
-      (response) => {
-        setSalas(response.data.salas);
-        getSecureData();
-      },
-      (error) => {
-        Alert.alert("Erro", error.response.data.error);
-      }
-    );
+    try {
+      const response = await api.getSalas();
+      setSalas(response.data.salas);
+    } catch (error) {
+      Alert.alert("Erro", error.response?.data?.error || "Erro ao carregar salas.");
+    }
   }
 
   const handleSalaSelect = (sala) => {
-    navigation.navigate("ReservaBloco", { sala: sala, idUsuario: idUsuario });
+    navigation.navigate("ReservaBloco", { sala, idUsuario });
   };
 
   const blocos = [...new Set(salas.map((s) => s.bloco))];
+
+  const salasFiltradas = salas.filter((sala) =>
+    blocoSelecionado ? sala.bloco === blocoSelecionado : true
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,7 +74,7 @@ export default function SalasPorBloco() {
               style={styles.picker}
               dropdownIconColor="#888"
             >
-              <Picker.Item label="Selecione um bloco:" color="#888" />
+              <Picker.Item label="Bloco:" color="#888" value="" />
               {blocos.map((bloco) => (
                 <Picker.Item key={bloco} label={bloco} value={bloco} />
               ))}
@@ -79,26 +83,22 @@ export default function SalasPorBloco() {
         </View>
 
         <View style={styles.roomsGrid}>
-          {salas
-            .filter((sala) =>
-              blocoSelecionado ? sala.bloco === blocoSelecionado : true
-            )
-            .map((sala) => (
-              <TouchableOpacity
-                key={sala.id_sala}
-                style={styles.roomCard}
-                onPress={() => handleSalaSelect(sala)}
-              >
-                <View style={styles.roomHeader}>
-                  <Text style={styles.roomTitle}>{sala.descricao}</Text>
-                </View>
-                <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
-                <Text style={styles.roomTitle2}>
-                  Capacidade: {sala.capacidade}
-                </Text>
-                <Text style={styles.roomTitle2}>N° da sala: {sala.numero}</Text>
-              </TouchableOpacity>
-            ))}
+          {salasFiltradas.map((sala) => (
+            <TouchableOpacity
+              key={sala.id_sala}
+              style={styles.roomCard}
+              onPress={() => handleSalaSelect(sala)}
+            >
+              <View style={styles.roomHeader}>
+                <Text style={styles.roomTitle}>{sala.descricao}</Text>
+              </View>
+              <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
+              <Text style={styles.roomTitle2}>
+                Capacidade: {sala.capacidade}
+              </Text>
+              <Text style={styles.roomTitle2}>N° da sala: {sala.numero}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
