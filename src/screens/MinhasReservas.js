@@ -51,16 +51,34 @@ export default function MinhasReservas() {
     await carregarReservas();
   };
 
-  const renderReservaCard = (reserva) => {
+  const abrirModal = (reserva, dia) => {
+    // Como os períodos ficam em reserva.periodos, usamos o primeiro para mostrar no modal
+    const periodo = reserva.periodos?.[0] || {};
+    setReservaSelecionada({
+      id_reserva: periodo.id_reserva,
+      nomeSala: reserva.nomeSalaDisplay,
+      descricao: reserva.descricaoDetalhe,
+      data: dia,
+      horarioInicio: periodo.horario_inicio,
+      horarioFim: periodo.horario_fim,
+    });
+    setModalVisible(true);
+  };
+
+  const renderReservaCard = (reserva, dia) => {
     const passou = reserva.periodos.some((p) => p.passou);
+    const diasFormatados =
+      reserva.dias && reserva.dias.length > 0
+        ? Array.isArray(reserva.dias)
+          ? reserva.dias.join(", ")
+          : reserva.dias
+        : "—";
+
     return (
       <TouchableOpacity
-        key={reserva.nomeSalaDisplay + reserva.descricaoDetalhe}
+        key={reserva.nomeSalaDisplay + reserva.descricaoDetalhe + dia}
         style={[styles.card, passou && styles.cardPassado]}
-        onPress={() => {
-          setReservaSelecionada(reserva);
-          setModalVisible(true);
-        }}
+        onPress={() => abrirModal(reserva, dia)}
       >
         <View style={styles.cardHeader}>
           <Text style={styles.sala}>{reserva.nomeSalaDisplay}</Text>
@@ -68,6 +86,8 @@ export default function MinhasReservas() {
 
         <View style={styles.cardBody}>
           <Text style={styles.descricao}>{reserva.descricaoDetalhe}</Text>
+          <Text style={styles.diasReservados}>{diasFormatados}</Text>
+
           {reserva.periodos.map((p, index) => (
             <View key={index} style={styles.periodoBadge}>
               <Text style={styles.periodoTexto}>
@@ -111,7 +131,9 @@ export default function MinhasReservas() {
                 {getDiaSemana(dia)} - {dia}
               </Text>
               <View style={styles.listaReservas}>
-                {reservas[dia].map((reserva) => renderReservaCard(reserva))}
+                {reservas[dia].map((reserva) =>
+                  renderReservaCard(reserva, dia)
+                )}
               </View>
             </View>
           ))
@@ -158,7 +180,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderRadius: 10,
-    flexBasis: "48%", // duas colunas
+    flexBasis: "48%",
     maxWidth: "48%",
     marginBottom: 12,
     shadowColor: "#000",
@@ -189,7 +211,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: "#333",
-    marginBottom: 8,
     textAlign: "center",
   },
   periodoBadge: {
@@ -202,6 +223,14 @@ const styles = StyleSheet.create({
   periodoTexto: {
     color: "#B11010",
     fontWeight: "600",
+  },
+  diasReservados: {
+    marginTop: 6,
+    fontSize: 13,
+    color: "#B11010",
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 8,
   },
   emptyText: {
     textAlign: "center",
