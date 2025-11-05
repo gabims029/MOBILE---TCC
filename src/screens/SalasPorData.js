@@ -20,6 +20,7 @@ export default function SalasPorData() {
   const route = useRoute();
   const { dataSelecionada } = route.params;
   const [blocoSelecionado, setBlocoSelecionado] = useState("");
+  const [pesquisa, setPesquisa] = useState("");
   const [salas, setSalas] = useState([]);
   const [idUsuario, setIdUsuario] = useState(null);
 
@@ -34,15 +35,13 @@ export default function SalasPorData() {
   };
 
   async function getSalas() {
-    await api.getSalas().then(
-      (response) => {
-        setSalas(response.data.salas);
-        getSecureData();
-      },
-      (error) => {
-        Alert.alert("Erro", error.response.data.error);
-      }
-    );
+    try {
+      const response = await api.getSalas();
+      setSalas(response.data.salas);
+      getSecureData();
+    } catch (error) {
+      Alert.alert("Erro", error.response?.data?.error || "Erro ao carregar salas.");
+    }
   }
 
   const handleSalaSelect = (sala) => {
@@ -52,14 +51,28 @@ export default function SalasPorData() {
     });
   };
 
-  // Processamento de dados
   const blocos = [...new Set(salas.map((s) => s.bloco))];
+
+  // Pesquisa
+  const salasFiltradas = salas.filter((sala) => {
+    const termo = pesquisa.toLowerCase();
+
+    const correspondePesquisa =
+      sala.numero.toLowerCase().includes(termo) ||
+      sala.descricao.toLowerCase().includes(termo);
+
+    const correspondeBloco = blocoSelecionado
+      ? sala.bloco === blocoSelecionado
+      : true;
+
+    return correspondePesquisa && correspondeBloco;
+  });
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        {/* Cabeçalho de busca */}
         <View style={styles.searchContainer}>
+          {/* Botão de voltar */}
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.navigate("Home")}
@@ -67,8 +80,15 @@ export default function SalasPorData() {
             <FontAwesome name="arrow-left" size={24} color="#ddd" />
           </TouchableOpacity>
 
-          <TextInput style={styles.searchInput} placeholder="Pesquisar" />
+          {/* Pesquisa */}
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Pesquisar"
+            value={pesquisa}
+            onChangeText={setPesquisa}
+          />
 
+          {/* Seletor de blocos */}
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={blocoSelecionado}
@@ -76,7 +96,15 @@ export default function SalasPorData() {
               style={styles.picker}
               dropdownIconColor="#888"
             >
-              <Picker.Item label="Selecione um bloco:" color="#888" />
+              <Picker.Item
+                label={
+                  blocoSelecionado
+                    ? `Bloco: ${blocoSelecionado}`
+                    : "Bloco:"
+                }
+                value=""
+                color="#888"
+              />
               {blocos.map((bloco) => (
                 <Picker.Item key={bloco} label={bloco} value={bloco} />
               ))}
@@ -84,30 +112,32 @@ export default function SalasPorData() {
           </View>
         </View>
 
-        {/* Data selecionada */}
         <Text style={styles.dataTitulo}>
           Data selecionada:{" "}
           {new Date(dataSelecionada).toLocaleDateString("pt-BR")}
         </Text>
 
-        {/* Grid de salas */}
         <View style={styles.roomsGrid}>
-          {salas.map((sala) => (
-            <TouchableOpacity
-              key={sala.id_sala}
-              style={styles.roomCard}
-              onPress={() => handleSalaSelect(sala)}
-            >
-              <View style={styles.roomHeader}>
-                <Text style={styles.roomTitle}>{sala.numero}</Text>
-              </View>
-              <Text style={styles.roomTitle2}>{sala.descricao}</Text>
-              <Text style={styles.roomTitle2}>
-                Capacidade: {sala.capacidade}
-              </Text>
-              <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
-            </TouchableOpacity>
-          ))}
+          {salasFiltradas.length > 0 ? (
+            salasFiltradas.map((sala) => (
+              <TouchableOpacity
+                key={sala.id_sala}
+                style={styles.roomCard}
+                onPress={() => handleSalaSelect(sala)}
+              >
+                <View style={styles.roomHeader}>
+                  <Text style={styles.roomTitle}>{sala.numero}</Text>
+                </View>
+                <Text style={styles.roomTitle2}>{sala.descricao}</Text>
+                <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
+                <Text style={styles.roomTitle2}>
+                  Capacidade: {sala.capacidade}
+                </Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={styles.semResultados}>Nenhuma sala encontrada.</Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -121,6 +151,21 @@ const styles = StyleSheet.create({
     margin: 15,
     fontSize: 16,
     fontWeight: "bold",
+  },
+
+  blocoSelecionado: {
+    marginHorizontal: 15,
+    marginBottom: 10,
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#CC1E1E",
+  },
+
+  semResultados: {
+    textAlign: "center",
+    marginTop: 20,
+    color: "#555",
+    fontSize: 14,
   },
 
   scrollView: { flex: 1 },
@@ -156,7 +201,7 @@ const styles = StyleSheet.create({
   },
 
   pickerContainer: {
-    width: 70,
+    width: 80,
     height: 40,
     borderWidth: 1,
     borderColor: "#ddd",

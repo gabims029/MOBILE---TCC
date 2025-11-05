@@ -24,6 +24,7 @@ export default function SalasPorBloco() {
   const [salas, setSalas] = useState([]);
   const [idUsuario, setIdUsuario] = useState(idUsuarioParam || null);
   const [blocoSelecionado, setBlocoSelecionado] = useState(blocoInicial || "");
+  const [pesquisa, setPesquisa] = useState("");
 
   useEffect(() => {
     getSalas();
@@ -50,14 +51,24 @@ export default function SalasPorBloco() {
 
   const blocos = [...new Set(salas.map((s) => s.bloco))];
 
-  const salasFiltradas = salas.filter((sala) =>
-    blocoSelecionado ? sala.bloco === blocoSelecionado : true
-  );
+  // Pesquisa
+  const salasFiltradas = salas.filter((sala) => {
+    const termo = pesquisa.toLowerCase();
+    const correspondePesquisa =
+      sala.descricao.toLowerCase().includes(termo) ||
+      sala.numero.toLowerCase().includes(termo);
+    const correspondeBloco = blocoSelecionado
+      ? sala.bloco === blocoSelecionado
+      : true;
+
+    return correspondePesquisa && correspondeBloco;
+  });
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.searchContainer}>
+          {/* Botão Voltar */}
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.navigate("Home")}
@@ -65,8 +76,15 @@ export default function SalasPorBloco() {
             <FontAwesome name="arrow-left" size={24} color="#ddd" />
           </TouchableOpacity>
 
-          <TextInput style={styles.searchInput} placeholder="Pesquisar" />
+          {/* Pesquisa */}
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Pesquisar"
+            value={pesquisa}
+            onChangeText={setPesquisa}
+          />
 
+          {/* Seletor de blocos */}
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={blocoSelecionado}
@@ -74,7 +92,15 @@ export default function SalasPorBloco() {
               style={styles.picker}
               dropdownIconColor="#888"
             >
-              <Picker.Item label="Bloco:" color="#888" value="" />
+              <Picker.Item
+                label={
+                  blocoSelecionado
+                    ? `Bloco: ${blocoSelecionado}`
+                    : "Selecione um bloco"
+                }
+                value=""
+                color="#888"
+              />
               {blocos.map((bloco) => (
                 <Picker.Item key={bloco} label={bloco} value={bloco} />
               ))}
@@ -83,22 +109,26 @@ export default function SalasPorBloco() {
         </View>
 
         <View style={styles.roomsGrid}>
-          {salasFiltradas.map((sala) => (
-            <TouchableOpacity
-              key={sala.id_sala}
-              style={styles.roomCard}
-              onPress={() => handleSalaSelect(sala)}
-            >
-              <View style={styles.roomHeader}>
-                <Text style={styles.roomTitle}>{sala.descricao}</Text>
-              </View>
-              <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
-              <Text style={styles.roomTitle2}>
-                Capacidade: {sala.capacidade}
-              </Text>
-              <Text style={styles.roomTitle2}>N° da sala: {sala.numero}</Text>
-            </TouchableOpacity>
-          ))}
+          {salasFiltradas.length > 0 ? (
+            salasFiltradas.map((sala) => (
+              <TouchableOpacity
+                key={sala.id_sala}
+                style={styles.roomCard}
+                onPress={() => handleSalaSelect(sala)}
+              >
+                <View style={styles.roomHeader}>
+                  <Text style={styles.roomTitle}>{sala.descricao}</Text>
+                </View>
+                <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
+                <Text style={styles.roomTitle2}>
+                  Capacidade: {sala.capacidade}
+                </Text>
+                <Text style={styles.roomTitle2}>N° da sala: {sala.numero}</Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={styles.semResultados}>Nenhuma sala encontrada.</Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -137,11 +167,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: "#ddd",
-    marginRight: 0,
+    marginRight: -11,
     right: 18,
   },
   pickerContainer: {
-    width: 70,
+    width: 80,
     height: 40,
     borderWidth: 1,
     borderColor: "#ddd",
@@ -171,18 +201,24 @@ const styles = StyleSheet.create({
   },
   roomHeader: {
     backgroundColor: "#CC1E1E",
-    padding: 8,
+    padding: 10,
   },
   roomTitle: {
     color: "white",
     fontWeight: "bold",
-    fontSize: 14,
-    padding: 2,
+    fontSize: 13.5,
+    padding: 0,
   },
   roomTitle2: {
     color: "black",
     fontWeight: "bold",
-    fontSize: 14,
+    fontSize: 12,
     padding: 2,
+  },
+  semResultados: {
+    textAlign: "center",
+    marginTop: 20,
+    color: "#555",
+    fontSize: 14,
   },
 });
