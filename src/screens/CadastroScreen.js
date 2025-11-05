@@ -69,6 +69,7 @@ export default function Cadastro() {
           style={styles.input}
           placeholder="E-mail"
           value={user.email}
+          autoCapitalize="none"
           onChangeText={(value) => setUser({ ...user, email: value })}
         />
 
