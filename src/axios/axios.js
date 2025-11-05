@@ -50,7 +50,7 @@ const sheets = {
   getTodasReservas: () => api.get("/schedule"),
   getSchedulesByUserID: (id) => api.get(`/reserva/usuario/${id}`),
   deleteReserva: (id) => api.delete(`/reserva/${id}`),
-
+  getAllPeriodos: () => api.get("/periodo"),
 };
 
 export default sheets;

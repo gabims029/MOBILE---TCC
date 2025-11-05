@@ -52,7 +52,6 @@ export default function MinhasReservas() {
   };
 
   const abrirModal = (reserva, dia) => {
-    // Como os períodos ficam em reserva.periodos, usamos o primeiro para mostrar no modal
     const periodo = reserva.periodos?.[0] || {};
     setReservaSelecionada({
       id_reserva: periodo.id_reserva,
@@ -110,7 +109,7 @@ export default function MinhasReservas() {
   }
 
   const getDiaSemana = (dataStr) => {
-    const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+    const dias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
     const data = new Date(dataStr + "T00:00:00");
     return dias[data.getDay()];
   };
