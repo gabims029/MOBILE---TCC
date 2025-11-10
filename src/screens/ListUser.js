@@ -6,12 +6,15 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import api from "../axios/axios"; 
+import api from "../axios/axios";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome } from "@expo/vector-icons";
+import ModalExcluirUser from "../components/ModalExcluirUser"; // importa o modal
 
 const ListaUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
+  const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -21,18 +24,36 @@ const ListaUsuarios = () => {
   async function carregarUsuarios() {
     try {
       const response = await api.getUsuarios();
-      console.log("Resposta da API:", response.data); 
-      setUsuarios(response.data.users); 
+      console.log("Resposta da API:", response.data);
+      setUsuarios(response.data.users);
     } catch (error) {
       console.log("Erro ao carregar usuários:", error);
     }
   }
 
+  // Função chamada ao clicar na lixeira
+  const handleOpenModal = (usuario) => {
+    setUsuarioSelecionado(usuario);
+    setModalVisible(true);
+  };
+
+  // Função chamada após exclusão
+  const handleDeleted = () => {
+    setModalVisible(false);
+    carregarUsuarios(); // recarrega lista após exclusão
+  };
+
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <Text style={styles.text}>{item.email}</Text>
-      <TouchableOpacity style={styles.deleteButton}>
-        <FontAwesome name="trash" size={20} color="#fff" />
+      <View style={styles.infoContainer}>
+        <Text style={styles.nome}>{item.nome}</Text>
+        <Text style={styles.email}>{item.email}</Text>
+      </View>
+      <TouchableOpacity
+        onPress={() => handleOpenModal(item)}
+        style={styles.trashButton}
+      >
+        <FontAwesome name="trash" size={22} color="#B11010" />
       </TouchableOpacity>
     </View>
   );
@@ -48,6 +69,7 @@ const ListaUsuarios = () => {
 
       <View style={styles.container}>
         <Text style={styles.title}>LISTA DE USUÁRIOS</Text>
+
         <FlatList
           data={usuarios}
           keyExtractor={(item) => item.id_user.toString()}
@@ -55,6 +77,15 @@ const ListaUsuarios = () => {
           showsVerticalScrollIndicator={false}
         />
       </View>
+
+      {/* Modal de exclusão */}
+      <ModalExcluirUser
+        visible={modalVisible}
+        usuario={usuarioSelecionado}
+        onCancel={() => setModalVisible(false)}
+        onDeleted={handleDeleted}
+        onClose={() => setModalVisible(false)}
+      />
     </View>
   );
 };
@@ -62,12 +93,12 @@ const ListaUsuarios = () => {
 const styles = StyleSheet.create({
   content: {
     flex: 1,
-    backgroundColor: "#FCECEC", // fundo rosado claro
+    backgroundColor: "#FCECEC",
     alignItems: "center",
     justifyContent: "center",
   },
   container: {
-    backgroundColor: "#D32F2F", // fundo vermelho intenso
+    backgroundColor: "#CC1E1E",
     width: "90%",
     borderRadius: 10,
     paddingVertical: 20,
@@ -77,42 +108,45 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "white",
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
   },
   card: {
-    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: "white",
     borderRadius: 10,
-    paddingVertical: 13,
-    paddingHorizontal: 10,
-    marginBottom: 12,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between", // Para ter a lixeira na direita
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    marginBottom: 10,
+    width: "100%",
   },
-  text: {
+  infoContainer: {
+    flexDirection: "column",
+  },
+  nome: {
     fontSize: 16,
-    color: "#333",
-    textAlign: "center",
-    flex: 1, // Faz com que o texto ocupe o espaço restante
+    fontWeight: "bold",
+    color: "#222",
   },
-  deleteButton: {
-    backgroundColor: "#D32F2F", // fundo vermelho para o botão de deletar
-    borderRadius: 50,
-    padding: 5,
-    justifyContent: "center",
-    alignItems: "center",
+  email: {
+    fontSize: 14,
+    color: "#777",
+  },
+  trashButton: {
+    padding: 8,
   },
   backButton: {
-    padding: 10,
+    padding: 1,
     alignSelf: "flex-start",
     margin: 5,
     borderRadius: 4,
     paddingHorizontal: 20,
     borderColor: "#ddd",
+    right: 20,
   },
 });
 

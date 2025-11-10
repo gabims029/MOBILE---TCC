@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import sheets from "../axios/axios";
 
@@ -18,35 +17,30 @@ const ModalExcluirUser = ({ visible, usuario, onCancel, onDeleted, onClose }) =>
     }
   }, [usuario]);
 
-  const navigation = useNavigation();
-
   const handleExcluirUser = async () => {
     console.log("Usuário recebido no handle:", usuario);
 
-    // Tenta pegar o ID em diferentes formatos
-    const id = usuario?.id || usuario?.idUsuario || usuario?.id_usuario;
+    // Captura o ID considerando todos os possíveis formatos
+    const id =
+      usuario?.id_user ||
+      usuario?.id ||
+      usuario?.idUsuario ||
+      usuario?.id_usuario;
 
     if (!id) {
       Alert.alert("Erro", "ID do usuário não encontrado.");
       return;
     }
 
+    console.log("ID encontrado para exclusão:", id);
+
     try {
       await sheets.deleteUser(id);
       Alert.alert("Sucesso", "Usuário deletado com sucesso.");
 
-      // Remove dados do usuário salvo no SecureStore
-      await SecureStore.deleteItemAsync("token");
-      await SecureStore.deleteItemAsync("id");
-
+      // Apenas executa callback e fecha o modal (sem deslogar)
       onDeleted?.();
       onClose?.();
-
-      // Redireciona para tela de Login
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Login" }],
-      });
     } catch (error) {
       console.log("Erro ao deletar:", error.response?.data || error.message);
       Alert.alert(
@@ -63,7 +57,7 @@ const ModalExcluirUser = ({ visible, usuario, onCancel, onDeleted, onClose }) =>
       <View style={styles.overlay}>
         <View style={styles.container}>
           <Text style={styles.title}>
-            Deseja realmente deletar sua conta?
+            Deseja realmente deletar o usuário {usuario?.nome}?
           </Text>
           <View style={styles.buttons}>
             <TouchableOpacity style={styles.button} onPress={onCancel}>

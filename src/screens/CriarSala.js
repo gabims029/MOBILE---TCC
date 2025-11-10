@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker"; 
+import { Picker } from "@react-native-picker/picker";
 import sheets from "../axios/axios";
 import Logo from "../../assets/logosenai.png";
 import { useNavigation } from "@react-navigation/native";
@@ -19,7 +19,7 @@ export default function CriarSala() {
     numero: "",
     descricao: "",
     capacidade: "",
-    bloco: "A",
+    bloco: "",
   });
 
   const navigation = useNavigation();
@@ -31,19 +31,25 @@ export default function CriarSala() {
       Alert.alert("Sucesso", response.data.message);
       navigation.goBack();
     } catch (error) {
-      console.log("Erro ao cadastrar sala:", error.response?.data || error.message);
-      Alert.alert("Erro", error.response?.data?.error || "Erro ao cadastrar sala");
+      console.log(
+        "Erro ao cadastrar sala:",
+        error.response?.data || error.message
+      );
+      Alert.alert(
+        "Erro",
+        error.response?.data?.error || "Erro ao cadastrar sala"
+      );
     }
   }
 
   return (
     <View style={styles.content}>
       <TouchableOpacity
-  style={styles.backButton}
-  onPress={() => navigation.navigate("Home")}
->
-  <FontAwesome name="arrow-left" size={24} color="#ddd" />
-</TouchableOpacity>
+        style={styles.backButton}
+        onPress={() => navigation.navigate("Home")}
+      >
+        <FontAwesome name="arrow-left" size={24} color="#ddd" />
+      </TouchableOpacity>
 
       <View style={styles.cadastroCard}>
         <View style={styles.logoContainer}>
@@ -58,7 +64,7 @@ export default function CriarSala() {
 
         <TextInput
           style={styles.input}
-          placeholder="Número da Sala"
+          placeholder="Sala"
           value={sala.numero}
           keyboardType="numeric"
           onChangeText={(value) => setSala({ ...sala, numero: value })}
@@ -79,14 +85,15 @@ export default function CriarSala() {
           onChangeText={(value) => setSala({ ...sala, capacidade: value })}
         />
 
-        {/* Seletor de Bloco */}
+        {/* Seletor de Bloco com mesmo estilo do Cadastro */}
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={sala.bloco}
             onValueChange={(value) => setSala({ ...sala, bloco: value })}
             style={styles.picker}
-            dropdownIconColor="#fff"
+            dropdownIconColor="#888"
           >
+            <Picker.Item label="Bloco" value="" color="#888" />
             <Picker.Item label="Bloco A" value="A" />
             <Picker.Item label="Bloco B" value="B" />
             <Picker.Item label="Bloco C" value="C" />
@@ -98,8 +105,16 @@ export default function CriarSala() {
           onPress={handleCriarSala}
           style={styles.cadastrarButton}
         >
-          <Text style={styles.cadastrarButtonText}>Cadastrar Sala</Text>
+          <Text style={styles.cadastrarButtonText}>Criar Sala</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+      onPress={() => navigation.navigate("ListaSalas")}
+      style={styles.cadastrarButton}
+    >
+      <Text style={styles.cadastrarButtonText}>Listar Salas</Text>
+    </TouchableOpacity>
+
       </View>
     </View>
   );
@@ -145,12 +160,13 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 25,
     marginVertical: 8,
+    paddingHorizontal: 15,
     justifyContent: "center",
   },
   picker: {
     width: "100%",
-    color: "#000",
-    paddingHorizontal: 15,
+    height: "130%",
+    color: "#888",
   },
   cadastrarButton: {
     width: "100%",
@@ -167,14 +183,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   backButton: {
-  padding: 1,
-  alignSelf: "flex-start",
-  margin: 5,
-  borderRadius: 4,
-  paddingHorizontal: 1,
-  borderColor: "#ddd",
-  right: 20,
-  top:-120,
-},
-
+    padding: 1,
+    alignSelf: "flex-start",
+    margin: 5,
+    borderRadius: 4,
+    paddingHorizontal: 1,
+    borderColor: "#ddd",
+    right: 20,
+    top: -120,
+  },
 });

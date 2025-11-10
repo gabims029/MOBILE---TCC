@@ -9,16 +9,19 @@ import {
   Alert,
   SafeAreaView,
 } from "react-native";
+import { Calendar } from "react-native-calendars";
 import api from "../axios/axios";
 import ModalDeleteReserva from "../components/ModalDeleteReserva";
 
 export default function TodasReservas() {
   const [reservas, setReservas] = useState({});
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedSala, setSelectedSala] = useState(null);
   const [reservaSelecionada, setReservaSelecionada] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Busca todas as reservas (sem filtro de usuário)
+  // 🔄 Carrega todas as reservas
   const carregarTodasReservas = async () => {
     try {
       setLoading(true);
@@ -57,8 +60,9 @@ export default function TodasReservas() {
     setModalVisible(true);
   };
 
-  const renderReservaCard = (reserva, dia) => {
-    const passou = reserva.periodos.some((p) => p.passou);
+  // 💳 Renderiza um cartão de reserva
+  const renderReservaCard = (reserva, dia, index) => {
+    const passou = reserva.periodos?.some((p) => p.passou);
     const diasFormatados =
       reserva.dias && reserva.dias.length > 0
         ? Array.isArray(reserva.dias)
@@ -68,29 +72,31 @@ export default function TodasReservas() {
 
     return (
       <TouchableOpacity
-        // 🔑 Garante key única e estável
-        key={`${reserva.id_reserva}-${dia}`}
+        // 🔐 key única e segura
+        key={`${reserva?.id_reserva || index}-${dia}`}
         style={[styles.card, passou && styles.cardPassado]}
         onPress={() => abrirModal(reserva, dia)}
       >
         <View style={styles.cardHeader}>
-          <Text style={styles.sala}>{reserva.nomeSalaDisplay}</Text>
+          <Text style={styles.sala}>{reserva?.nomeSalaDisplay || "Sala ?"}</Text>
         </View>
 
         <View style={styles.cardBody}>
-          <Text style={styles.descricao}>{reserva.descricaoDetalhe}</Text>
-          <Text style={styles.usuario}>
-            Usuário: {reserva.nomeUsuario || "Desconhecido"}
+          <Text style={styles.descricao}>
+            {reserva?.descricaoDetalhe || "Sem descrição"}
           </Text>
           <Text style={styles.diasReservados}>{diasFormatados}</Text>
 
-          {reserva.periodos.map((p) => (
-            <View key={`${p.id_reserva}-${p.horario_inicio}`} style={styles.periodoBadge}>
+          {reserva?.periodos?.map((p, idx) => (
+            <View key={idx} style={styles.periodoBadge}>
               <Text style={styles.periodoTexto}>
                 {p.horario_inicio} - {p.horario_fim}
               </Text>
             </View>
           ))}
+          <Text style={styles.usuario}>
+            Usuário: {reserva?.nomeUsuario || "—"}
+          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -100,42 +106,90 @@ export default function TodasReservas() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#B11010" />
-        <Text style={styles.loadingText}>Carregando todas as reservas...</Text>
+        <Text style={styles.loadingText}>Carregando reservas...</Text>
       </View>
     );
   }
 
-  // ✅ Corrige caso data inválida cause "NaN"
-  const getDiaSemana = (dataStr) => {
-    if (!dataStr || isNaN(new Date(dataStr))) return "Data Inválida";
-    const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-    const data = new Date(dataStr + "T00:00:00");
-    return dias[data.getDay()];
-  };
+  const reservasDoDia = selectedDate ? reservas[selectedDate] || [] : [];
 
-  const diasComReservas = Object.keys(reservas).filter(
-    (dia) => reservas[dia].length > 0
-  );
+  // 🧩 Filtro de sala com fallback seguro
+  const reservasFiltradas =
+    selectedSala && reservasDoDia.length > 0
+      ? reservasDoDia.filter((r) =>
+          (r?.nomeSalaDisplay || "").toUpperCase().includes(selectedSala)
+        )
+      : reservasDoDia;
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Cabeçalho */}
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Todas as reservas</Text>
+      </View>
+
+      {/* Calendário */}
+      <View style={styles.calendarContainer}>
+        <Calendar
+          onDayPress={(day) => {
+            console.log("Dia selecionado:", day.dateString);
+            setSelectedDate(day.dateString);
+          }}
+          markedDates={{
+            [selectedDate]: { selected: true, selectedColor: "#B11010" },
+          }}
+          theme={{
+            todayTextColor: "#B11010",
+            selectedDayBackgroundColor: "#B11010",
+            arrowColor: "#B11010",
+          }}
+        />
+      </View>
+
+      {/* Filtro por sala */}
+      <View style={styles.filtroContainer}>
+        {["A", "B", "C", "D"].map((letra) => (
+          <TouchableOpacity
+            key={letra}
+            style={[
+              styles.filtroButton,
+              selectedSala === letra && styles.filtroButtonAtivo,
+            ]}
+            onPress={() =>
+              setSelectedSala(selectedSala === letra ? null : letra)
+            }
+          >
+            <Text
+              style={[
+                styles.filtroText,
+                selectedSala === letra && styles.filtroTextAtivo,
+              ]}
+            >
+              {letra}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Lista de reservas */}
       <ScrollView contentContainerStyle={styles.scroll}>
-        {diasComReservas.length === 0 ? (
-          <Text style={styles.emptyText}>Nenhuma reserva encontrada.</Text>
-        ) : (
-          diasComReservas.map((dia) => (
-            // 🔑 Key baseada no dia e quantidade de reservas (garante unicidade)
-            <View key={`${dia}-${reservas[dia].length}`} style={styles.diaContainer}>
-              <Text style={styles.diaTitulo}>
-                {getDiaSemana(dia)} - {dia}
-              </Text>
-              <View style={styles.listaReservas}>
-                {reservas[dia].map((reserva) =>
-                  renderReservaCard(reserva, dia)
-                )}
-              </View>
+        {selectedDate ? (
+          reservasFiltradas.length > 0 ? (
+            <View style={styles.listaReservas}>
+              {reservasFiltradas.map((reserva, index) =>
+                renderReservaCard(reserva, selectedDate, index)
+              )}
             </View>
-          ))
+          ) : (
+            <Text style={styles.emptyText}>
+              Nenhuma reserva para {selectedDate}
+              {selectedSala ? ` na sala ${selectedSala}` : ""}.
+            </Text>
+          )
+        ) : (
+          <Text style={styles.emptyText}>
+            Selecione um dia no calendário para ver as reservas.
+          </Text>
         )}
       </ScrollView>
 
@@ -151,18 +205,38 @@ export default function TodasReservas() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFE9E9" },
-  scroll: { padding: 20, paddingBottom: 40 },
-  diaContainer: { marginBottom: 25 },
-  diaTitulo: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#B11010",
-    marginBottom: 10,
-    textAlign: "center",
-    backgroundColor: "#FFD3D3",
-    borderRadius: 10,
-    paddingVertical: 6,
+  header: {
+    backgroundColor: "#B11010",
+    padding: 12,
+    alignItems: "center",
   },
+  headerText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  calendarContainer: {
+    margin: 12,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    padding: 5,
+    elevation: 3,
+  },
+  filtroContainer: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    marginVertical: 8,
+  },
+  filtroButton: {
+    borderColor: "#B11010",
+    borderWidth: 2,
+    borderRadius: 12,
+    width: 50,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+  },
+  filtroButtonAtivo: { backgroundColor: "#B11010" },
+  filtroText: { fontSize: 18, fontWeight: "bold", color: "#B11010" },
+  filtroTextAtivo: { color: "#fff" },
+  scroll: { padding: 10 },
   listaReservas: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -189,8 +263,12 @@ const styles = StyleSheet.create({
   },
   cardBody: { padding: 10, alignItems: "center" },
   sala: { color: "#fff", fontSize: 18, fontWeight: "bold" },
-  descricao: { fontSize: 14, fontWeight: "500", color: "#333", textAlign: "center" },
-  usuario: { marginTop: 6, fontSize: 13, color: "#000", fontWeight: "600" },
+  descricao: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
+    textAlign: "center",
+  },
   periodoBadge: {
     backgroundColor: "#FFD3D3",
     borderRadius: 8,
@@ -207,12 +285,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 8,
   },
+  usuario: { fontSize: 12, color: "#333", marginTop: 4 },
   emptyText: {
     textAlign: "center",
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginTop: 60,
+    fontSize: 16,
+    color: "#555",
+    marginTop: 20,
   },
   loadingContainer: {
     flex: 1,
@@ -220,5 +298,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFE9E9",
   },
-  loadingText: { marginTop: 15, fontSize: 18, color: "#B11010" },
+  loadingText: { marginTop: 10, color: "#B11010" },
 });
