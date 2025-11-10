@@ -4,6 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Login from "./screens/LoginScreen";
 import Cadastro from "./screens/CadastroScreen";
 import Home from "./screens/Home";
+
 import ReservaBloco from "./screens/ReservaBloco";
 import MinhasReservas from "./screens/MinhasReservas";
 import Perfil from "./screens/Perfil";
@@ -14,6 +15,7 @@ import TodasReservas from "./screens/TodasReservas";
 import PerfilAdmin from "./screens/PerfilAdmin";
 import SalasPorBloco from "./screens/SalasPorBloco";
 import SalasPorData from "./screens/SalasPorData";
+import AuthLoading from "./screens/AuthLoading";
 
 const Stack = createStackNavigator();
 
@@ -21,9 +23,17 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName="AuthLoading"
         screenOptions={{ headerShown: false }}
       >
+        <Stack.Screen name="AuthLoading">
+          {(props) => (
+            <Layout>
+              <AuthLoading {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
+
         <Stack.Screen name="Login">
           {(props) => (
             <Layout header={1}>
