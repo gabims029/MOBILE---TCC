@@ -19,36 +19,40 @@ import { useNavigation } from "@react-navigation/native";
 export default function ReservaBloco({ route }) {
   const navigation = useNavigation();
   const { sala } = route.params;
-  const hoje = new Date().toISOString().split("T")[0];
+  const hoje = new Date();
+  const hojeISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(
+    hoje.getDate()
+  ).padStart(2, "0")}`;
+
   const [idUsuario, setIdUsuario] = useState(null);
   const [horarios, setHorarios] = useState([]);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState(false);
   const [horariosSelecionados, setHorariosSelecionados] = useState([]);
   const [diasSelecionados, setDiasSelecionados] = useState([]);
-  const [dataInicio, setDataInicio] = useState(hoje);
-  const [dataFim, setDataFim] = useState(hoje);
+  const [dataInicio, setDataInicio] = useState(hojeISO);
+  const [dataFim, setDataFim] = useState(hojeISO);
   const [showPickerInicio, setShowPickerInicio] = useState(false);
   const [showPickerFim, setShowPickerFim] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
   const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
-  // 👉 Função para formatar data para exibição no padrão brasileiro
+  //Formatar data padrão
   const formatarDataBrasileira = (dataISO) => {
     if (!dataISO) return "";
     const [ano, mes, dia] = dataISO.split("-");
     return `${dia}/${mes}/${ano}`;
   };
 
-  // 👉 Função para converter data brasileira (dd/mm/aaaa) para ISO (aaaa-mm-dd)
-  const converterParaISO = (dataBR) => {
-    if (!dataBR) return "";
-    const [dia, mes, ano] = dataBR.split("/");
+  //Converte data selecionada
+  const formatarDataISO = (date) => {
+    const ano = date.getFullYear();
+    const mes = String(date.getMonth() + 1).padStart(2, "0");
+    const dia = String(date.getDate()).padStart(2, "0");
     return `${ano}-${mes}-${dia}`;
   };
 
-  // Recupera idUsuario do SecureStore
   useEffect(() => {
     const getUsuarioId = async () => {
       const id = await SecureStore.getItemAsync("id");
@@ -61,7 +65,6 @@ export default function ReservaBloco({ route }) {
     getUsuarioId();
   }, []);
 
-  // Buscar horários disponíveis
   useEffect(() => {
     if (!sala) return;
     const fetchHorarios = async () => {
@@ -102,7 +105,7 @@ export default function ReservaBloco({ route }) {
   const onChangeInicio = (event, selectedDate) => {
     setShowPickerInicio(false);
     if (selectedDate) {
-      const dataISO = selectedDate.toISOString().split("T")[0];
+      const dataISO = formatarDataISO(selectedDate);
       setDataInicio(dataISO);
     }
   };
@@ -110,7 +113,7 @@ export default function ReservaBloco({ route }) {
   const onChangeFim = (event, selectedDate) => {
     setShowPickerFim(false);
     if (selectedDate) {
-      const dataISO = selectedDate.toISOString().split("T")[0];
+      const dataISO = formatarDataISO(selectedDate);
       setDataFim(dataISO);
     }
   };
@@ -136,7 +139,7 @@ export default function ReservaBloco({ route }) {
           fk_id_sala: sala.id_sala,
           fk_id_periodo: id_periodo,
           dias: diasSelecionados,
-          data_inicio: dataInicio, // formato ISO
+          data_inicio: dataInicio,
           data_fim: dataFim,
         });
       }
@@ -144,8 +147,8 @@ export default function ReservaBloco({ route }) {
       Alert.alert("Sucesso", `Reserva realizada para sala ${sala.numero}`);
       setHorariosSelecionados([]);
       setDiasSelecionados([]);
-      setDataInicio(hoje);
-      setDataFim(hoje);
+      setDataInicio(hojeISO);
+      setDataFim(hojeISO);
       setModalVisible(false);
     } catch (err) {
       console.log("Erro ao criar reserva:", err?.response?.data || err);
@@ -156,7 +159,6 @@ export default function ReservaBloco({ route }) {
     }
   };
 
-  // Texto dos horários
   const horariosTexto = horariosSelecionados
     .map((id) => {
       const h = horarios.find((x) => x.id_periodo === id);
@@ -181,7 +183,6 @@ export default function ReservaBloco({ route }) {
           </Text>
         </View>
 
-        {/* Datas */}
         <View style={styles.datasContainer}>
           {/* Data Início */}
           <View style={styles.dataBox}>

@@ -108,10 +108,20 @@ export default function MinhasReservas() {
     );
   }
 
+  // ✅ Corrigido: data local e formato brasileiro
   const getDiaSemana = (dataStr) => {
-    const dias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-    const data = new Date(dataStr + "T00:00:00");
+    if (!dataStr) return "";
+    const [ano, mes, dia] = dataStr.split("-").map(Number);
+    const data = new Date(ano, mes - 1, dia);
+    const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
     return dias[data.getDay()];
+  };
+
+  // ✅ Formata data para o padrão brasileiro
+  const formatarDataBrasileira = (dataStr) => {
+    if (!dataStr) return "";
+    const [ano, mes, dia] = dataStr.split("-");
+    return `${dia}/${mes}/${ano}`;
   };
 
   const diasComReservas = Object.keys(reservas).filter(
@@ -127,7 +137,7 @@ export default function MinhasReservas() {
           diasComReservas.map((dia) => (
             <View key={dia} style={styles.diaContainer}>
               <Text style={styles.diaTitulo}>
-                {getDiaSemana(dia)} - {dia}
+                {getDiaSemana(dia)} : {formatarDataBrasileira(dia)}
               </Text>
               <View style={styles.listaReservas}>
                 {reservas[dia].map((reserva) =>
