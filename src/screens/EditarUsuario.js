@@ -33,6 +33,7 @@ export default function EditarUsuario() {
         <TextInput
           style={styles.input}
           value={email}
+          autoCapitalize="none"
           onChangeText={setEmail}
         />
 

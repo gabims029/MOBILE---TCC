@@ -12,7 +12,7 @@ import api from "../axios/axios";
 import Logo from "../../assets/logosenai.png";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 
 export default function Login() {
   const [user, setUser] = useState({
@@ -23,32 +23,33 @@ export default function Login() {
 
   const navigation = useNavigation();
 
-  const saveInfos = async (token, id_user) => {
+  const saveInfos = async (token, id_user, tipo) => {
     try {
       await SecureStore.setItemAsync("token", token);
       await SecureStore.setItemAsync("id", id_user.toString());
+      await SecureStore.setItemAsync("tipo", tipo.toLowerCase());
     } catch (error) {
       console.log("Erro ao salvar no SecureStore:", error);
     }
   };
-  
-  const handleLogin = async () => {
-    try {
-      console.log("Payload enviado:", user);
-      const response = await api.postLogin(user);
-      await saveInfos(response.data.token, response.data.user.id_user);
-      Alert.alert("Sucesso", response.data.message);
-      navigation.navigate("Home");
-    } catch (error) {
-      console.log("Erro no login:", error);
-      if (error.response.data.error) {
-        Alert.alert("Erro", error.response.data.error);
-      } else {
-        Alert.alert("Erro", "Erro ao conectar com o servidor.");
-      }
-    }
-  };
-  
+
+ const handleLogin = async () => {
+  try {
+    const response = await api.postLogin({ email: user.email, senha: user.senha });
+
+    const { token, user: userObj } = response.data;
+    const { id_user, tipo } = userObj;
+
+    await saveInfos(token, id_user, tipo);
+
+    Alert.alert("Sucesso", response.data.message);
+    navigation.navigate("Home");
+  } catch (error) {
+    Alert.alert("Erro", error.response?.data?.error || "Erro ao conectar com o servidor.");
+  }
+};
+
+
   return (
     <View style={styles.content}>
       <View style={styles.loginCard}>
@@ -98,7 +99,6 @@ export default function Login() {
         <TouchableOpacity onPress={handleLogin} style={styles.loginButton}>
           <Text style={styles.loginButtonText}> Entrar </Text>
         </TouchableOpacity>
-
       </View>
     </View>
   );

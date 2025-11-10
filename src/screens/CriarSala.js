@@ -8,10 +8,11 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import api from "../axios/axios"; // já deve estar configurado
+import { Picker } from "@react-native-picker/picker";
+import sheets from "../axios/axios";
 import Logo from "../../assets/logosenai.png";
 import { useNavigation } from "@react-navigation/native";
-// AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+import { FontAwesome } from "@expo/vector-icons";
 
 export default function CriarSala() {
   const [sala, setSala] = useState({
@@ -25,10 +26,15 @@ export default function CriarSala() {
 
   async function handleCriarSala() {
     try {
-      const response = await api.post("/sala", sala);
+      const response = await sheets.postSalas(sala);
+
       Alert.alert("Sucesso", response.data.message);
-      navigation.goBack(); // volta para a tela anterior
+      navigation.goBack();
     } catch (error) {
+      console.log(
+        "Erro ao cadastrar sala:",
+        error.response?.data || error.message
+      );
       Alert.alert(
         "Erro",
         error.response?.data?.error || "Erro ao cadastrar sala"
@@ -38,6 +44,13 @@ export default function CriarSala() {
 
   return (
     <View style={styles.content}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.navigate("Home")}
+      >
+        <FontAwesome name="arrow-left" size={24} color="#ddd" />
+      </TouchableOpacity>
+
       <View style={styles.cadastroCard}>
         <View style={styles.logoContainer}>
           <View style={styles.logoWrapper}>
@@ -51,7 +64,7 @@ export default function CriarSala() {
 
         <TextInput
           style={styles.input}
-          placeholder="Número da Sala"
+          placeholder="Sala"
           value={sala.numero}
           keyboardType="numeric"
           onChangeText={(value) => setSala({ ...sala, numero: value })}
@@ -72,19 +85,36 @@ export default function CriarSala() {
           onChangeText={(value) => setSala({ ...sala, capacidade: value })}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Bloco"
-          value={sala.bloco}
-          onChangeText={(value) => setSala({ ...sala, bloco: value })}
-        />
+        {/* Seletor de Bloco com mesmo estilo do Cadastro */}
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={sala.bloco}
+            onValueChange={(value) => setSala({ ...sala, bloco: value })}
+            style={styles.picker}
+            dropdownIconColor="#888"
+          >
+            <Picker.Item label="Bloco" value="" color="#888" />
+            <Picker.Item label="Bloco A" value="A" />
+            <Picker.Item label="Bloco B" value="B" />
+            <Picker.Item label="Bloco C" value="C" />
+            <Picker.Item label="Bloco D" value="D" />
+          </Picker>
+        </View>
 
         <TouchableOpacity
           onPress={handleCriarSala}
           style={styles.cadastrarButton}
         >
-          <Text style={styles.cadastrarButtonText}>Cadastrar Sala</Text>
+          <Text style={styles.cadastrarButtonText}>Criar Sala</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+      onPress={() => navigation.navigate("ListaSalas")}
+      style={styles.cadastrarButton}
+    >
+      <Text style={styles.cadastrarButtonText}>Listar Salas</Text>
+    </TouchableOpacity>
+
       </View>
     </View>
   );
@@ -124,6 +154,20 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     paddingHorizontal: 15,
   },
+  pickerContainer: {
+    width: "100%",
+    height: 45,
+    backgroundColor: "white",
+    borderRadius: 25,
+    marginVertical: 8,
+    paddingHorizontal: 15,
+    justifyContent: "center",
+  },
+  picker: {
+    width: "100%",
+    height: "130%",
+    color: "#888",
+  },
   cadastrarButton: {
     width: "100%",
     height: 45,
@@ -137,5 +181,15 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  backButton: {
+    padding: 1,
+    alignSelf: "flex-start",
+    margin: 5,
+    borderRadius: 4,
+    paddingHorizontal: 1,
+    borderColor: "#ddd",
+    right: 20,
+    top: -120,
   },
 });

@@ -13,7 +13,7 @@ import Logo from "../../assets/logosenai.png";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
-import Menu from "../components/Menu"; // importa o menu lateral
+import { FontAwesome } from "@expo/vector-icons";
 
 export default function Cadastro() {
   const [user, setUser] = useState({
@@ -25,8 +25,6 @@ export default function Cadastro() {
     showPassord: true,
   });
 
-  const [menuVisible, setMenuVisible] = useState(false); // controla visibilidade do menu
-
   const navigation = useNavigation();
 
   async function handleCadastro() {
@@ -36,18 +34,18 @@ export default function Cadastro() {
         navigation.navigate("Home");
       },
       (error) => {
-        Alert.alert("Erro", error.response?.data?.error || "Erro ao cadastrar");
+        Alert.alert("Erro", error.response.data.error);
       }
     );
   }
-
-  return (
+  return (      
     <View style={styles.content}>
       <TouchableOpacity
-        style={styles.menuButton}
-        onPress={() => setMenuVisible(true)}
-      >
-      </TouchableOpacity>
+  style={styles.backButton}
+  onPress={() => navigation.navigate("Home")}
+>
+  <FontAwesome name="arrow-left" size={24} color="#ddd" />
+</TouchableOpacity>
 
       <View style={styles.cadastroCard}>
         <View style={styles.logoContainer}>
@@ -71,6 +69,7 @@ export default function Cadastro() {
           style={styles.input}
           placeholder="E-mail"
           value={user.email}
+          autoCapitalize="none"
           onChangeText={(value) => setUser({ ...user, email: value })}
         />
 
@@ -116,99 +115,102 @@ export default function Cadastro() {
           </Picker>
         </View>
 
-        <TouchableOpacity onPress={handleCadastro} style={styles.cadastrarButton}>
+        <TouchableOpacity
+          onPress={handleCadastro}
+          style={styles.cadastrarButton}
+        >
           <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
         </TouchableOpacity>
       </View>
-
-      <Menu visible={menuVisible} onClose={() => setMenuVisible(false)} />
     </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 20,
-    backgroundColor: "#FCECEC",
-  },
-  menuButton: {
-    position: "absolute",
-    top: 50,
-    left: 30,
-    zIndex: 10,
-  },
-  cadastroCard: {
-    backgroundColor: "#CC1E1E",
-    width: "90%",
-    borderRadius: 10,
-    padding: 20,
-    alignItems: "center",
-    marginTop: 80,
-  },
-  logoContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 15,
-    width: "100%",
-  },
-  logoWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-  input: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "white",
-    borderRadius: 25,
-    marginVertical: 8,
-    paddingHorizontal: 15,
-  },
-  cadastrarButton: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "#FF3F3F",
-    borderRadius: 25,
-    marginTop: 15,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cadastrarButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  passwordContainer: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "white",
-    borderRadius: 25,
-    marginVertical: 8,
-    paddingHorizontal: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingRight: 10,
-  },
-  passwordInput: {
-    flex: 1,
-    height: 40,
-  },
-  pickerContainer: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "white",
-    borderRadius: 25,
-    marginVertical: 8,
-    paddingHorizontal: 15,
-    justifyContent: "center",
-  },
-  picker: {
-    width: "100%",
-    height: "130%",
-    color: "#888",
-  },
+    );
+  }
+  
+  const styles = StyleSheet.create({
+    content: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 20,
+    },
+    cadastroCard: {
+      backgroundColor: "#CC1E1E",
+      width: "90%",
+      borderRadius: 10,
+      padding: 20,
+      alignItems: "center",
+    },
+    logoContainer: {
+      justifyContent: "center",
+      alignItems: "center",
+      marginVertical: 15,
+      width: "100%",
+    },
+    logoWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "100%",
+    },
+    input: {
+      width: "100%",
+      height: 45,
+      backgroundColor: "white",
+      borderRadius: 25,
+      marginVertical: 8,
+      paddingHorizontal: 15,
+    },
+    cadastrarButton: {
+      width: "100%",
+      height: 45,
+      backgroundColor: "#FF3F3F",
+      borderRadius: 25,
+      marginTop: 15,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    cadastrarButtonText: {
+      color: "white",
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    passwordContainer: {
+      width: "100%",
+      height: 45,
+      backgroundColor: "white",
+      borderRadius: 25,
+      marginVertical: 8,
+      paddingHorizontal: 15,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingRight: 10,
+    },
+    passwordInput: {
+      flex: 1,
+      height: 40,
+    },
+    pickerContainer: {
+      width: "100%",
+      height: 45,
+      backgroundColor: "white",
+      borderRadius: 25,
+      marginVertical: 8,
+      paddingHorizontal: 15,
+      justifyContent: "center",
+    },
+    picker: {
+      width: "100%",
+      height: "130%",
+      color: "#888",
+    },
+   backButton: {
+  padding: 1,
+  alignSelf: "flex-start",
+  margin: 5,
+  borderRadius: 4,
+  paddingHorizontal: 2,
+  borderColor: "#ddd",
+  right: 20,
+   top: -85, 
+},
 });

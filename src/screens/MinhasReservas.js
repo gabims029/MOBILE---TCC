@@ -2,102 +2,159 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
   Alert,
+  SafeAreaView,
 } from "react-native";
-import api from "../axios/axios";
-import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
+import api from "../axios/axios";
 import ModalDeleteReserva from "../components/ModalDeleteReserva";
 
 export default function MinhasReservas() {
-  const navigation = useNavigation();
-  const [reserva, setReserva] = useState([]);
-  const [idUsuario, setIdUsuario] = useState(null);
-
-  const [modalVisible, setModalVisible] = useState(false);
+  const [reservas, setReservas] = useState({});
+  const [loading, setLoading] = useState(true);
   const [reservaSelecionada, setReservaSelecionada] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const carregarReservas = async () => {
+    try {
+      setLoading(true);
+      const idUsuario = await SecureStore.getItemAsync("id");
+      if (!idUsuario) {
+        Alert.alert("Erro", "ID do usuário não encontrado.");
+        setLoading(false);
+        return;
+      }
+
+      const response = await api.getSchedulesByUserID(idUsuario);
+      setReservas(response.data.reservas || {});
+    } catch (error) {
+      console.log("Erro ao carregar reservas:", error);
+      Alert.alert(
+        "Erro",
+        error.response?.data?.error || "Não foi possível carregar suas reservas."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const getSecureData = async () => {
-      const value = await SecureStore.getItemAsync("id");
-      console.log(value);
-      setIdUsuario(value);
-      if (value) {
-        getReservas(value);
-      } else {
-        Alert.alert("Erro", "ID do usuário não encontrado.");
-      }
-    };
-    getSecureData();
+    carregarReservas();
   }, []);
 
-  async function getReservas(idUsuario) {
-    await api.getReservasPorUsuario(idUsuario).then(
-      (response) => {
-        console.log(response.data)
-        setReserva(response.data.reservas);
-      },
-      (error) => {
-        Alert.alert("Erro",error.response?.data?.error || "Erro ao buscar reservas."
-        );
-      }
-    );
-  }
+  const handleDelete = async () => {
+    setModalVisible(false);
+    await carregarReservas();
+  };
 
-  const handleReservaSelect = (reserva) => {
-    setReservaSelecionada(reserva);
+  const abrirModal = (reserva, dia) => {
+    const periodo = reserva.periodos?.[0] || {};
+    setReservaSelecionada({
+      id_reserva: periodo.id_reserva,
+      nomeSala: reserva.nomeSalaDisplay,
+      descricao: reserva.descricaoDetalhe,
+      data: dia,
+      horarioInicio: periodo.horario_inicio,
+      horarioFim: periodo.horario_fim,
+    });
     setModalVisible(true);
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <Text style={styles.title}>Minhas Reservas</Text>
-        <View style={styles.roomsGrid}>
-          {reserva.length === 0 ? (
-            <Text style={styles.noReserva}>Você não possui reservas.</Text>
-          ) : (
-            reserva.map((reserva) => (
-              <TouchableOpacity
-                key={reserva.id_reserva}
-                style={styles.roomCard}
-                onPress={() => handleReservaSelect(reserva)}
-              >
-                <View style={styles.roomHeader}>
-                  <Text style={styles.roomTitle}> {reserva.descricao}</Text>
-                </View>
-                <Text style={styles.roomTitle2}>Data: {reserva.data}</Text>
-                <Text style={styles.roomTitle2}>
-                  Início: {reserva.horarioInicio}
-                </Text>
-                <Text style={styles.roomTitle2}>Fim: {reserva.horarioFim}</Text>
-              </TouchableOpacity>
-            ))
-          )}
+  const renderReservaCard = (reserva, dia) => {
+    const passou = reserva.periodos.some((p) => p.passou);
+    const diasFormatados =
+      reserva.dias && reserva.dias.length > 0
+        ? Array.isArray(reserva.dias)
+          ? reserva.dias.join(", ")
+          : reserva.dias
+        : "—";
+
+    return (
+      <TouchableOpacity
+        key={reserva.nomeSalaDisplay + reserva.descricaoDetalhe + dia}
+        style={[styles.card, passou && styles.cardPassado]}
+        onPress={() => abrirModal(reserva, dia)}
+      >
+        <View style={styles.cardHeader}>
+          <Text style={styles.sala}>{reserva.nomeSalaDisplay}</Text>
         </View>
 
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Home")}
-          style={styles.voltarButton}
-        >
-          <Text>Voltar</Text>
-        </TouchableOpacity>
+        <View style={styles.cardBody}>
+          <Text style={styles.descricao}>{reserva.descricaoDetalhe}</Text>
+          <Text style={styles.diasReservados}>{diasFormatados}</Text>
+
+          {reserva.periodos.map((p, index) => (
+            <View key={index} style={styles.periodoBadge}>
+              <Text style={styles.periodoTexto}>
+                {p.horario_inicio} - {p.horario_fim}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#B11010" />
+        <Text style={styles.loadingText}>Carregando suas reservas...</Text>
+      </View>
+    );
+  }
+
+  // ✅ Corrigido: data local e formato brasileiro
+  const getDiaSemana = (dataStr) => {
+    if (!dataStr) return "";
+    const [ano, mes, dia] = dataStr.split("-").map(Number);
+    const data = new Date(ano, mes - 1, dia);
+    const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+    return dias[data.getDay()];
+  };
+
+  // ✅ Formata data para o padrão brasileiro
+  const formatarDataBrasileira = (dataStr) => {
+    if (!dataStr) return "";
+    const [ano, mes, dia] = dataStr.split("-");
+    return `${dia}/${mes}/${ano}`;
+  };
+
+  const diasComReservas = Object.keys(reservas).filter(
+    (dia) => reservas[dia].length > 0
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {diasComReservas.length === 0 ? (
+          <Text style={styles.emptyText}>Você não possui reservas.</Text>
+        ) : (
+          diasComReservas.map((dia) => (
+            <View key={dia} style={styles.diaContainer}>
+              <Text style={styles.diaTitulo}>
+                {getDiaSemana(dia)} : {formatarDataBrasileira(dia)}
+              </Text>
+              <View style={styles.listaReservas}>
+                {reservas[dia].map((reserva) =>
+                  renderReservaCard(reserva, dia)
+                )}
+              </View>
+            </View>
+          ))
+        )}
       </ScrollView>
 
       <ModalDeleteReserva
-  isVisible={modalVisible}
-  onClose={() => setModalVisible(false)}
-  reserva={reservaSelecionada}
-  onDeleted={() => {
-    setModalVisible(false);
-    getReservas(idUsuario);
-  }}
-/>
-
+        isVisible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        reserva={reservaSelecionada}
+        onDeleted={handleDelete}
+      />
     </SafeAreaView>
   );
 }
@@ -105,65 +162,101 @@ export default function MinhasReservas() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF5F5",
+    backgroundColor: "#FFE9E9",
   },
-  title: {
-    fontSize: 24,
-    color: "#CC1E1E",
+  scroll: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  diaContainer: {
+    marginBottom: 25,
+  },
+  diaTitulo: {
+    fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 20,
-    alignSelf: "center",
-    marginTop: 15,
+    color: "#B11010",
+    marginBottom: 10,
+    textAlign: "center",
+    backgroundColor: "#FFD3D3",
+    borderRadius: 10,
+    paddingVertical: 6,
   },
-  scrollView: {
-    flex: 1,
-  },
-  roomsGrid: {
+  listaReservas: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    paddingHorizontal: 15,
   },
-  roomCard: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    width: "48%",
-    height: 130,
-    marginBottom: 15,
-    overflow: "hidden",
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    flexBasis: "48%",
+    maxWidth: "48%",
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  roomHeader: {
-    backgroundColor: "#CC1E1E",
-    padding: 8,
+  cardPassado: {
+    opacity: 0.6,
   },
-  roomTitle: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 14,
-    padding: 2,
-  },
-  roomTitle2: {
-    color: "black",
-    fontWeight: "bold",
-    fontSize: 14,
-    padding: 2,
-  },
-  voltarButton: {
-    width: "90%",
-    height: 30,
-    borderRadius: 3,
-    backgroundColor: "#FF3F3F",
-    margin: 20,
-    justifyContent: "center",
+  cardHeader: {
+    backgroundColor: "#B11010",
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    paddingVertical: 6,
     alignItems: "center",
   },
-  noReserva: {
-    fontSize: 16,
-    color: "#CC1E1E",
+  cardBody: {
+    padding: 10,
+    alignItems: "center",
+  },
+  sala: {
+    color: "#fff",
+    fontSize: 18,
     fontWeight: "bold",
-    alignSelf: "center",
-    marginTop: 30,
+  },
+  descricao: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
+    textAlign: "center",
+  },
+  periodoBadge: {
+    backgroundColor: "#FFD3D3",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: 4,
+  },
+  periodoTexto: {
+    color: "#B11010",
+    fontWeight: "600",
+  },
+  diasReservados: {
+    marginTop: 6,
+    fontSize: 13,
+    color: "#B11010",
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  emptyText: {
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 60,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFE9E9",
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 18,
+    color: "#B11010",
   },
 });

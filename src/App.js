@@ -4,17 +4,18 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Login from "./screens/LoginScreen";
 import Cadastro from "./screens/CadastroScreen";
 import Home from "./screens/Home";
+
 import ReservaBloco from "./screens/ReservaBloco";
-import ReservaData from "./screens/ReservaData";
 import MinhasReservas from "./screens/MinhasReservas";
 import Perfil from "./screens/Perfil";
 import Layout from "./components/MyLayout";
 import CriarSala from "./screens/CriarSala";
 import ListUser from "./screens/ListUser";
 import TodasReservas from "./screens/TodasReservas";
-import PerfilAdmin from "./screens/PerfilAdmin"; 
+import PerfilAdmin from "./screens/PerfilAdmin";
 import SalasPorBloco from "./screens/SalasPorBloco";
 import SalasPorData from "./screens/SalasPorData";
+import AuthLoading from "./screens/AuthLoading";
 
 const Stack = createStackNavigator();
 
@@ -22,19 +23,27 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName="AuthLoading"
         screenOptions={{ headerShown: false }}
       >
+        <Stack.Screen name="AuthLoading">
+          {(props) => (
+            <Layout>
+              <AuthLoading {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
+
         <Stack.Screen name="Login">
-          {() => (
+          {(props) => (
             <Layout header={1}>
-              <Login />
+              <Login {...props} />
             </Layout>
           )}
         </Stack.Screen>
 
         <Stack.Screen name="Cadastro">
-          {() => (
+          {(props) => (
             <Layout>
               <Cadastro {...props} />
             </Layout>
@@ -42,9 +51,9 @@ export default function App() {
         </Stack.Screen>
 
         <Stack.Screen name="Home">
-          {() => (
+          {(props) => (
             <Layout>
-              <Home />
+              <Home {...props} />
             </Layout>
           )}
         </Stack.Screen>
@@ -53,14 +62,6 @@ export default function App() {
           {(props) => (
             <Layout>
               <ReservaBloco {...props} />
-            </Layout>
-          )}
-        </Stack.Screen>
-
-        <Stack.Screen name="ReservaData">
-          {(props) => (
-            <Layout>
-              <ReservaData {...props} />
             </Layout>
           )}
         </Stack.Screen>
@@ -104,30 +105,30 @@ export default function App() {
             </Layout>
           )}
         </Stack.Screen>
-        <Stack.Screen
-          name="SalasPorBloco"
-          component={(props) => (
+
+        <Stack.Screen name="SalasPorBloco">
+          {(props) => (
             <Layout>
               <SalasPorBloco {...props} />
             </Layout>
           )}
-        />
-        <Stack.Screen
-          name="SalasPorData"
-          component={(props) => (
+        </Stack.Screen>
+
+        <Stack.Screen name="SalasPorData">
+          {(props) => (
             <Layout>
-              <SalasPorData />
+              <SalasPorData {...props} />
             </Layout>
           )}
-        />
-        <Stack.Screen
-          name="PerfilAdmin"
-          component={(props) => (
+        </Stack.Screen>
+
+        <Stack.Screen name="PerfilAdmin">
+          {(props) => (
             <Layout>
               <PerfilAdmin {...props} />
             </Layout>
           )}
-        />
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );

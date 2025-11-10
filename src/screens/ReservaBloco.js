@@ -8,180 +8,381 @@ import {
   TouchableOpacity,
   Alert,
   Modal,
+  ActivityIndicator,
 } from "react-native";
-import api from "../axios/axios";
-import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import * as SecureStore from "expo-secure-store";
+import api from "../axios/axios";
 import { FontAwesome } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 export default function ReservaBloco({ route }) {
-  const { sala, idUsuario } = route.params;
   const navigation = useNavigation();
-  const [disponiveis, setDisponiveis] = useState([]);
-  const [reservados, setReservados] = useState([]);
+  const { sala } = route.params;
+  const hoje = new Date();
+  const hojeISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(
+    hoje.getDate()
+  ).padStart(2, "0")}`;
+
+  const [idUsuario, setIdUsuario] = useState(null);
+  const [horarios, setHorarios] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState(false);
+  const [horariosSelecionados, setHorariosSelecionados] = useState([]);
+  const [diasSelecionados, setDiasSelecionados] = useState([]);
+  const [dataInicio, setDataInicio] = useState(hojeISO);
+  const [dataFim, setDataFim] = useState(hojeISO);
+  const [showPickerInicio, setShowPickerInicio] = useState(false);
+  const [showPickerFim, setShowPickerFim] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [horarioSelecionado, setHorarioSelecionado] = useState(null);
-  const [data, setData] = useState("");
-  const [showPicker, setShowPicker] = useState(false); // controlar a exibição do DateTimePicker
+
+  const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+
+  //Formatar data padrão
+  const formatarDataBrasileira = (dataISO) => {
+    if (!dataISO) return "";
+    const [ano, mes, dia] = dataISO.split("-");
+    return `${dia}/${mes}/${ano}`;
+  };
+
+  //Converte data selecionada
+  const formatarDataISO = (date) => {
+    const ano = date.getFullYear();
+    const mes = String(date.getMonth() + 1).padStart(2, "0");
+    const dia = String(date.getDate()).padStart(2, "0");
+    return `${ano}-${mes}-${dia}`;
+  };
 
   useEffect(() => {
-    if (data) {
-      getHorarios(data);
-    }
-  }, [data]);
-
-  async function getHorarios(selectedDate) {
-    await api.getHorarios({ id_sala: sala.id_sala, data: selectedDate }).then(
-      (response) => {
-        setDisponiveis(response.data.horarios.Disponiveis);
-        setReservados(response.data.horarios.Indisponiveis);
-        console.log(disponiveis);
-        console.log(reservados)
-      },
-      (error) => {
-        Alert.alert("Erro", error.response.data.error);
-        saveId(response.data.id_usuario);
+    const getUsuarioId = async () => {
+      const id = await SecureStore.getItemAsync("id");
+      if (!id) {
+        Alert.alert("Erro", "ID do usuário não encontrado. Faça login novamente.");
+      } else {
+        setIdUsuario(id);
       }
+    };
+    getUsuarioId();
+  }, []);
+
+  useEffect(() => {
+    if (!sala) return;
+    const fetchHorarios = async () => {
+      try {
+        setLoading(true);
+        setErro(false);
+        const res = await api.getAllPeriodos();
+        setHorarios(res.data?.periodos || []);
+      } catch (err) {
+        console.log("Erro ao buscar horários:", err);
+        setErro(true);
+        setHorarios([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHorarios();
+  }, [sala]);
+
+  // Seleção de horários
+  const toggleHorario = (h) => {
+    if (h.status === "ocupado") return;
+    setHorariosSelecionados((prev) =>
+      prev.includes(h.id_periodo)
+        ? prev.filter((id) => id !== h.id_periodo)
+        : [...prev, h.id_periodo]
     );
-  }
+  };
 
-  async function abrirModal(horario) {
-    setHorarioSelecionado(horario);
-    setModalVisible(true);
-  }
+  // Seleção de dias
+  const toggleDia = (dia) => {
+    setDiasSelecionados((prev) =>
+      prev.includes(dia) ? prev.filter((d) => d !== dia) : [...prev, dia]
+    );
+  };
 
-  //event - interação do usuário vem do DateTimePicker
-  const onChangeDate = (event, selectedDate) => {
-    setShowPicker(false);
-
+  // Manipulação de datas
+  const onChangeInicio = (event, selectedDate) => {
+    setShowPickerInicio(false);
     if (selectedDate) {
-      const formattedDate = selectedDate.toISOString().split("T")[0];
-      setData(formattedDate);
+      const dataISO = formatarDataISO(selectedDate);
+      setDataInicio(dataISO);
     }
   };
 
-  async function confirmarReserva() {
-    const inicio = horarioSelecionado.inicio;
-    const fim = horarioSelecionado.fim;
+  const onChangeFim = (event, selectedDate) => {
+    setShowPickerFim(false);
+    if (selectedDate) {
+      const dataISO = formatarDataISO(selectedDate);
+      setDataFim(dataISO);
+    }
+  };
 
-    await api
-      .confirmarReserva({
-        id_usuario: idUsuario,
-        fk_id_sala: sala.id_sala,
-        data: data,
-        horarioInicio: inicio,
-        horarioFim: fim,
-      })
-      .then(
-        () => {
-          setModalVisible(false);
-          Alert.alert("Sucesso", "Reserva confirmada!");
-          getHorarios(data); // Atualiza horários após reserva
-        },
-        (error) => {
-          Alert.alert(
-            "Erro",
-            error.response?.data?.error || "Erro ao reservar"
-          );
-          console.log(error);
-          setModalVisible(false);
-        }
-      );
-  }
+  // Confirmar reserva
+  const confirmarReserva = async () => {
+    if (
+      !idUsuario ||
+      !dataInicio ||
+      !dataFim ||
+      diasSelecionados.length === 0 ||
+      horariosSelecionados.length === 0
+    ) {
+      return Alert.alert("Atenção", "Selecione datas, dias e ao menos um horário.");
+    }
+
+    try {
+      setLoading(true);
+
+      for (const id_periodo of horariosSelecionados) {
+        await api.createReserva({
+          fk_id_user: Number(idUsuario),
+          fk_id_sala: sala.id_sala,
+          fk_id_periodo: id_periodo,
+          dias: diasSelecionados,
+          data_inicio: dataInicio,
+          data_fim: dataFim,
+        });
+      }
+
+      Alert.alert("Sucesso", `Reserva realizada para sala ${sala.numero}`);
+      setHorariosSelecionados([]);
+      setDiasSelecionados([]);
+      setDataInicio(hojeISO);
+      setDataFim(hojeISO);
+      setModalVisible(false);
+    } catch (err) {
+      console.log("Erro ao criar reserva:", err?.response?.data || err);
+      const msg = err?.response?.data?.error || "Erro ao processar a reserva";
+      Alert.alert("Erro", msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const horariosTexto = horariosSelecionados
+    .map((id) => {
+      const h = horarios.find((x) => x.id_periodo === id);
+      return h ? `${h.horario_inicio.slice(0, 5)} - ${h.horario_fim.slice(0, 5)}` : null;
+    })
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-            <FontAwesome name="arrow-left" size={24} color="#ddd" style={styles.icon} />
-          </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.navigate("SalasPorBloco")}
+      >
+        <FontAwesome name="arrow-left" size={24} color="#ddd" />
+      </TouchableOpacity>
+
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <View style={styles.tituloContainer}>
           <Text style={styles.tituloTexto}>
-            Sala: {sala.numero} - {sala.descricao}
+            {sala.numero} {sala.descricao ? `- ${sala.descricao}` : ""}
           </Text>
         </View>
 
-        <View style={{ padding: 10 }}>
-          <Text style={{ fontWeight: "bold" }}>Selecione a data:</Text>
-          <TouchableOpacity
-            style={{
-              width: 200,
-              marginTop: 10,
-              padding: 10,
-              backgroundColor: "#ccc",
-              borderRadius: 5,
-            }}
-            onPress={() => setShowPicker(true)}
-          >
-            <Text>{data || "Selecione a data"}</Text>
-          </TouchableOpacity>
+        <View style={styles.datasContainer}>
+          {/* Data Início */}
+          <View style={styles.dataBox}>
+            <Text style={styles.dataLabel}>Data Início:</Text>
+            <TouchableOpacity
+              style={styles.dateButton}
+              onPress={() => setShowPickerInicio(true)}
+            >
+              <Text style={styles.dataText}>{formatarDataBrasileira(dataInicio)}</Text>
+            </TouchableOpacity>
+            {showPickerInicio && (
+              <DateTimePicker
+                value={new Date(dataInicio)}
+                mode="date"
+                display="default"
+                onChange={onChangeInicio}
+              />
+            )}
+          </View>
 
-          {showPicker && (
-            <DateTimePicker
-              value={data ? new Date(data) : new Date()}
-              mode="date"
-              display="default"
-              onChange={onChangeDate}
-            />
-          )}
+          {/* Data Fim */}
+          <View style={styles.dataBox}>
+            <Text style={styles.dataLabel}>Data Fim:</Text>
+            <TouchableOpacity
+              style={styles.dateButton}
+              onPress={() => setShowPickerFim(true)}
+            >
+              <Text style={styles.dataText}>{formatarDataBrasileira(dataFim)}</Text>
+            </TouchableOpacity>
+            {showPickerFim && (
+              <DateTimePicker
+                value={new Date(dataFim)}
+                mode="date"
+                display="default"
+                onChange={onChangeFim}
+              />
+            )}
+          </View>
         </View>
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap", padding: 10 }}>
-          {disponiveis.map((horario) => (
-            <TouchableOpacity
-              key={`disp-${horario.inicio}-${horario.fim}`}
-              style={styles.horarioDisponivel}
-              onPress={() => abrirModal(horario)}
-            >
-              <Text style={{ fontWeight: "bold", fontSize: 15 }}>
-                {horario.inicio} - {horario.fim}
-              </Text>
-            </TouchableOpacity>
-          ))}
-          {reservados.map((horario) => (
-            <TouchableOpacity
-              key={`res-${horario.inicio}-${horario.fim}`}
-              style={styles.horarioReservado}
-            >
-              <Text style={{ fontWeight: "bold", fontSize: 15 }}>
-                {horario.inicio} - {horario.fim}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <Modal
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
-          animationType="slide"
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>RESERVAR</Text>
-              <Text style={{ fontSize: 18 }}>SALA: {sala.descricao} </Text>
-              <Text style={{ fontSize: 18 }}>DATA: {data}</Text>
-              <Text style={{ fontSize: 18 }}>
-                HORÁRIO: {horarioSelecionado?.inicio} -{" "}
-                {horarioSelecionado?.fim}
-              </Text>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  marginTop: 20,
-                  justifyContent: "space-between",
-                }}
-              >
+        {/* Dias da semana */}
+        <View style={styles.diasContainer}>
+          <Text style={styles.diasTitulo}>Dias da semana:</Text>
+          <View style={styles.diasBotoesContainer}>
+            {diasSemana.map((dia) => {
+              const selecionado = diasSelecionados.includes(dia);
+              return (
                 <TouchableOpacity
+                  key={dia}
+                  style={[
+                    styles.diaBotao,
+                    { backgroundColor: selecionado ? "#FF6B6B" : "#E0E0E0" },
+                  ]}
+                  onPress={() => toggleDia(dia)}
+                >
+                  <Text
+                    style={[
+                      styles.diaTexto,
+                      { color: selecionado ? "#fff" : "#000" },
+                    ]}
+                  >
+                    {dia}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Horários disponíveis */}
+        {loading ? (
+          <ActivityIndicator size="large" color="red" style={{ marginTop: 20 }} />
+        ) : erro ? (
+          <Text style={{ textAlign: "center", color: "red", marginVertical: 10 }}>
+            Erro ao carregar horários.
+          </Text>
+        ) : (
+          <View
+            style={{
+              padding: 10,
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "center",
+            }}
+          >
+            {horarios.map((h) => {
+              const selecionado = horariosSelecionados.includes(h.id_periodo);
+              return (
+                <TouchableOpacity
+                  key={h.id_periodo}
+                  style={{
+                    padding: 10,
+                    margin: 6,
+                    borderRadius: 6,
+                    minWidth: 100,
+                    alignItems: "center",
+                    backgroundColor:
+                      h.status === "ocupado"
+                        ? "#e57373"
+                        : selecionado
+                        ? "#fff"
+                        : "#81c784",
+                    borderWidth: selecionado ? 2 : 0,
+                    borderColor: selecionado ? "red" : "transparent",
+                  }}
+                  disabled={h.status === "ocupado"}
+                  onPress={() => toggleHorario(h)}
+                >
+                  <Text
+                    style={{
+                      fontWeight: "bold",
+                      color:
+                        h.status === "ocupado"
+                          ? "#fff"
+                          : selecionado
+                          ? "#000"
+                          : "#fff",
+                    }}
+                  >
+                    {h.horario_inicio.slice(0, 5)} - {h.horario_fim.slice(0, 5)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Botão Reservar */}
+        {horariosSelecionados.length > 0 && (
+          <View style={{ alignItems: "center", marginVertical: 20 }}>
+            <TouchableOpacity
+              style={{
+                backgroundColor: "red",
+                paddingVertical: 12,
+                paddingHorizontal: 30,
+                borderRadius: 8,
+              }}
+              onPress={() => setModalVisible(true)}
+            >
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>Reservar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Modal de confirmação */}
+        <Modal visible={modalVisible} transparent animationType="slide">
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "rgba(0,0,0,0.5)",
+            }}
+          >
+            <View
+              style={{
+                width: "85%",
+                backgroundColor: "#fff",
+                padding: 20,
+                borderRadius: 10,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>
+                Confirmar Reserva
+              </Text>
+              <Text>Sala: {sala.numero}</Text>
+              <Text>
+                Data: {formatarDataBrasileira(dataInicio)} a{" "}
+                {formatarDataBrasileira(dataFim)}
+              </Text>
+              <Text>Dias: {diasSelecionados.join(", ")}</Text>
+              <Text>Horários: {horariosTexto}</Text>
+
+              <View style={{ flexDirection: "row", marginTop: 20 }}>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: "#F8BFC0",
+                    padding: 10,
+                    minWidth: 100,
+                    alignItems: "center",
+                    borderRadius: 5,
+                    marginRight: 8,
+                  }}
                   onPress={() => setModalVisible(false)}
-                  style={styles.cancelar}
                 >
                   <Text style={{ fontWeight: "bold" }}>CANCELAR</Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
+                  style={{
+                    backgroundColor: "#66bb6a",
+                    padding: 10,
+                    minWidth: 100,
+                    alignItems: "center",
+                    borderRadius: 5,
+                  }}
                   onPress={confirmarReserva}
-                  style={styles.confirmar}
                 >
-                  <Text style={{ fontWeight: "bold" }}>CONFIRMAR</Text>
+                  <Text style={{ fontWeight: "bold", color: "#fff" }}>CONFIRMAR</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -193,99 +394,49 @@ export default function ReservaBloco({ route }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFF5F5",
-  },
-  tituloContainer: {
-    backgroundColor: "#FFC9C9", // fundo rosa claro
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginTop: 0,
-  },
-  tituloTexto: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#000",
-  },
-  horarioReservado: {
-    backgroundColor: "#E56565",
-    padding: 10,
-    margin: 8,
-    borderRadius: 3,
-    minWidth: 130,
+  container: { flex: 1, backgroundColor: "#FFF5F5" },
+  tituloContainer: { backgroundColor: "#FFC9C9", padding: 12 },
+  tituloTexto: { fontSize: 18, fontWeight: "bold", color: "#000" },
+  datasContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
     alignItems: "center",
-  },
-  horarioDisponivel: {
-    backgroundColor: "#ADD7A9",
-    padding: 10,
-    margin: 8,
-    borderRadius: 3,
-    minWidth: 130,
-    alignItems: "center",
-  },
-  voltarButton: {
-    width: 100,
-    height: 30,
-    borderRadius: 3,
-    backgroundColor: "#FF3F3F",
-    marginTop: 15,
-    marginLeft: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  //Modal
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    alignItems: "center",
-  },
-  modalBox: {
-    width: "85%",
-    backgroundColor: "#F5F7FB", // cor de fundo mais clara
-    padding: 20,
-    alignItems: "center",
-    borderRadius: 10,
-    padding: 0,
-    paddingBottom: 15,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    backgroundColor: "#B92626", // vermelho forte
-    color: "white",
-    paddingVertical: 8,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    width: "100%",
-    textAlign: "center",
+    marginTop: 10,
     marginBottom: 10,
+    paddingHorizontal: 8,
   },
-  cancelar: {
-    backgroundColor: "#F8BFC0", // rosa claro
-    padding: 10,
-    minWidth: 100,
+  dataBox: { flex: 1, alignItems: "center" },
+  dataLabel: { fontWeight: "bold", marginBottom: 5, color: "#000" },
+  dateButton: {
+    width: "80%",
+    height: 40,
+    backgroundColor: "#D9D9D9",
+    borderRadius: 8,
+    justifyContent: "center",
     alignItems: "center",
-    borderRadius: 5,
-    marginRight: 5,
   },
-  confirmar: {
-    backgroundColor: "#A5D6A7", // verde claro
-    padding: 10,
-    minWidth: 100,
+  dataText: { fontSize: 15, color: "#000", fontWeight: "500" },
+  diasContainer: {
     alignItems: "center",
-    borderRadius: 5,
-    marginHorizontal: 5,
+    marginVertical: 10,
+    marginBottom: 25,
   },
-  icon: {
-    padding: 1,
-    alignSelf: "flex-start",
-    margin: 5,
-    borderRadius: 4,
-    paddingHorizontal: 5,
-    borderColor: "#ddd",
-    right: 0,
+  diasTitulo: {
+    fontWeight: "bold",
+    fontSize: 16,
+    color: "#000",
+    marginBottom: 8,
   },
+  diasBotoesContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  diaBotao: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    margin: 4,
+    borderRadius: 8,
+  },
+  diaTexto: { fontSize: 14, fontWeight: "bold" },
 });

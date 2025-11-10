@@ -9,57 +9,82 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import api from "../axios/axios";
-import { useNavigation } from "@react-navigation/native";
-import * as SecureStore from "expo-secure-store";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
 import { FontAwesome } from "@expo/vector-icons";
+import * as SecureStore from "expo-secure-store";
+import api from "../axios/axios";
 
-export default function Home() {
+export default function SalasPorBloco() {
   const navigation = useNavigation();
+  const route = useRoute();
+
+  const { bloco: blocoInicial, idUsuario: idUsuarioParam } = route.params || {};
+
   const [salas, setSalas] = useState([]);
-  const [idUsuario, setIdUsuario] = useState(null);
-  const [blocoSelecionado, setBlocoSelecionado] = useState("");
+  const [idUsuario, setIdUsuario] = useState(idUsuarioParam || null);
+  const [blocoSelecionado, setBlocoSelecionado] = useState(blocoInicial || "");
+  const [pesquisa, setPesquisa] = useState("");
 
   useEffect(() => {
     getSalas();
     getSecureData();
   }, []);
 
-  const handleSalaSelect = (sala) => {
-    navigation.navigate("ReservaBloco", { sala: sala, idUsuario: idUsuario });
-  };
-
   const getSecureData = async () => {
     const value = await SecureStore.getItemAsync("id");
-    setIdUsuario(value);
+    if (value) setIdUsuario(value);
   };
 
   async function getSalas() {
-    await api.getSalas().then(
-      (response) => {
-        setSalas(response.data.salas);
-        getSecureData();
-      },
-      (error) => {
-        Alert.alert("Erro", error.response.data.error);
-      }
-    );
+    try {
+      const response = await api.getSalas();
+      setSalas(response.data.salas);
+    } catch (error) {
+      Alert.alert("Erro", error.response?.data?.error || "Erro ao carregar salas.");
+    }
   }
 
+  const handleSalaSelect = (sala) => {
+    navigation.navigate("ReservaBloco", { sala, idUsuario });
+  };
+
   const blocos = [...new Set(salas.map((s) => s.bloco))];
+
+  // Pesquisa
+  const salasFiltradas = salas.filter((sala) => {
+    const termo = pesquisa.toLowerCase();
+    const correspondePesquisa =
+      sala.descricao.toLowerCase().includes(termo) ||
+      sala.numero.toLowerCase().includes(termo);
+    const correspondeBloco = blocoSelecionado
+      ? sala.bloco === blocoSelecionado
+      : true;
+
+    return correspondePesquisa && correspondeBloco;
+  });
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.searchContainer}>
-        <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.navigate("Home")}
-      >
-        <FontAwesome name="arrow-left" size={24} color="#ddd" />
-      </TouchableOpacity>
-          <TextInput style={styles.searchInput} placeholder="Pesquisar" />
+          {/* Botão Voltar */}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.navigate("Home")}
+          >
+            <FontAwesome name="arrow-left" size={24} color="#ddd" />
+          </TouchableOpacity>
+
+          {/* Pesquisa */}
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Pesquisar"
+            value={pesquisa}
+            onChangeText={setPesquisa}
+          />
+
+          {/* Seletor de blocos */}
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={blocoSelecionado}
@@ -67,7 +92,15 @@ export default function Home() {
               style={styles.picker}
               dropdownIconColor="#888"
             >
-              <Picker.Item label="Selecione um bloco:" color="#888" />
+              <Picker.Item
+                label={
+                  blocoSelecionado
+                    ? `Bloco: ${blocoSelecionado}`
+                    : "Selecione um bloco"
+                }
+                value=""
+                color="#888"
+              />
               {blocos.map((bloco) => (
                 <Picker.Item key={bloco} label={bloco} value={bloco} />
               ))}
@@ -76,11 +109,8 @@ export default function Home() {
         </View>
 
         <View style={styles.roomsGrid}>
-          {salas
-            .filter((sala) =>
-              blocoSelecionado ? sala.bloco === blocoSelecionado : true
-            )
-            .map((sala) => (
+          {salasFiltradas.length > 0 ? (
+            salasFiltradas.map((sala) => (
               <TouchableOpacity
                 key={sala.id_sala}
                 style={styles.roomCard}
@@ -95,7 +125,10 @@ export default function Home() {
                 </Text>
                 <Text style={styles.roomTitle2}>N° da sala: {sala.numero}</Text>
               </TouchableOpacity>
-            ))}
+            ))
+          ) : (
+            <Text style={styles.semResultados}>Nenhuma sala encontrada.</Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -107,12 +140,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFF5F5",
   },
+  scrollView: {
+    flex: 1,
+  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
     marginBottom: 10,
     margin: 10,
+  },
+  backButton: {
+    padding: 1,
+    alignSelf: "flex-start",
+    margin: 5,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    borderColor: "#ddd",
+    right: 20,
   },
   searchInput: {
     flex: 1,
@@ -122,11 +167,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: "#ddd",
-    marginRight: 0,
+    marginRight: -11,
     right: 18,
   },
   pickerContainer: {
-    width: 70,
+    width: 80,
     height: 40,
     borderWidth: 1,
     borderColor: "#ddd",
@@ -137,9 +182,6 @@ const styles = StyleSheet.create({
   picker: {
     width: "100%",
     height: "100%",
-  },
-  scrollView: {
-    flex: 1,
   },
   roomsGrid: {
     flexDirection: "row",
@@ -159,27 +201,24 @@ const styles = StyleSheet.create({
   },
   roomHeader: {
     backgroundColor: "#CC1E1E",
-    padding: 8,
+    padding: 10,
   },
   roomTitle: {
     color: "white",
     fontWeight: "bold",
-    fontSize: 14,
-    padding: 2,
+    fontSize: 13.5,
+    padding: 0,
   },
   roomTitle2: {
     color: "black",
     fontWeight: "bold",
-    fontSize: 14,
+    fontSize: 12,
     padding: 2,
   },
-  backButton: {
-    padding: 1,
-    alignSelf: "flex-start",
-    margin: 5,
-    borderRadius: 4,
-    paddingHorizontal: 5,
-    borderColor: "#ddd",
-    right: 20,
+  semResultados: {
+    textAlign: "center",
+    marginTop: 20,
+    color: "#555",
+    fontSize: 14,
   },
 });

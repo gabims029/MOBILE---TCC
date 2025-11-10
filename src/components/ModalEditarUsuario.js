@@ -46,23 +46,23 @@ const ModalEditarUsuario = ({ visible, onClose, userId, onUpdated }) => {
       Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
       return;
     }
- 
+  
     // Se o usuário quiser trocar a senha, precisa informar a atual e a nova
     if ((senha && !novaSenha) || (!senha && novaSenha)) {
       Alert.alert("Atenção", "Informe a senha atual e a nova senha para alterar.");
       return;
     }
- 
+  
     try {
       await sheets.updateUser({
         id: userId,
         nome,
         email,
-        cpf,              
-        senhaAtual: senha,
+        cpf,               
+        senhaAtual: senha, 
         senha: novaSenha,  
       });
- 
+  
       Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
       onUpdated?.();
       onClose();
