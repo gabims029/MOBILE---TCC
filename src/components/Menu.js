@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ModalConfirmacao from "./ModalConfirmacao";
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 
 export default function Menu({ visible, onClose }) {
   const navigation = useNavigation();
@@ -40,34 +40,38 @@ export default function Menu({ visible, onClose }) {
       <View style={styles.overlay}>
         <View style={styles.menu}>
           <TouchableOpacity onPress={() => handleNavigate("Home")}>
-            <Text style={styles.item}>Home</Text>
+            <Text style={styles.item}>HOME</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => handleNavigate("Perfil")}>
-            <Text style={styles.item}>Meu Perfil</Text>
+            <Text style={styles.item}>PERFIL</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => handleNavigate("MinhasReservas")}>
-            <Text style={styles.item}>Minhas Reservas</Text>
+            <Text style={styles.item}>MINHAS RESERVAS</Text>
           </TouchableOpacity>
           {tipo === "admin" && (
             <>
+              <TouchableOpacity onPress={() => handleNavigate("TodasReservas")}>
+                <Text style={styles.item}>TODAS RESERVAS</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity onPress={() => handleNavigate("Cadastro")}>
-                <Text style={styles.item}>Cadastrar Usuário</Text>
+                <Text style={styles.item}>CADASTRAR USUÁRIO</Text>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => handleNavigate("ListUser")}>
-                <Text style={styles.item}>Vizualizar Usuários</Text>
+                <Text style={styles.item}>VIZUALIZAR USUÁRIOS</Text>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => handleNavigate("CriarSala")}>
-                <Text style={styles.item}>Criar Sala</Text>
+                <Text style={styles.item}>CRIAR SALA</Text>
               </TouchableOpacity>
             </>
           )}
 
           <TouchableOpacity onPress={abrirModal}>
-            <Text style={styles.item}>Sair</Text>
+            <Text style={styles.item}>SAIR</Text>
           </TouchableOpacity>
         </View>
 
@@ -88,19 +92,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   menu: {
-    width: 250,
+    width: 240,
     backgroundColor: "#CC1E1E",
-    paddingTop: 20,
+    paddingTop: 10,
     paddingHorizontal: 20,
     position: "absolute",
-    top: 20,
+    top: 40,
     bottom: 0,
     left: 0,
     zIndex: 2,
   },
   closeArea: {
     flex: 1,
-    top: 20,
+    top: 42,
     backgroundColor: "rgba(0,0,0,0.3)",
   },
   item: {

@@ -79,23 +79,23 @@ const Perfil = () => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>CPF</Text>
-          <TextInput style={styles.input} value={user.cpf} editable={false} />
+          <Text style={styles.label}>EMAIL</Text>
+          <TextInput style={styles.input} value={user.email} editable={false} />
         </View>
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>SENHA</Text>
           <TextInput
             style={styles.input}
-            value={user.senha}
+            placeholder="*******"
             secureTextEntry
             editable={false}
           />
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>EMAIL</Text>
-          <TextInput style={styles.input} value={user.email} editable={false} />
+          <Text style={styles.label}>CPF</Text>
+          <TextInput style={styles.input} value={user.cpf} editable={false} />
         </View>
 
         <TouchableOpacity

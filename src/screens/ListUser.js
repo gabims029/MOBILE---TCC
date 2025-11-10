@@ -29,25 +29,25 @@ const ListaUsuarios = () => {
   }
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.card} 
-      onPress={() => navigation.navigate("PerfilAdmin", { idUsuario: item.id_user })}
-    >
+    <View style={styles.card}>
       <Text style={styles.text}>{item.email}</Text>
-    </TouchableOpacity>
+      <TouchableOpacity style={styles.deleteButton}>
+        <FontAwesome name="trash" size={20} color="#fff" />
+      </TouchableOpacity>
+    </View>
   );
 
   return (
     <View style={styles.content}>
       <TouchableOpacity
-  style={styles.backButton}
-  onPress={() => navigation.navigate("Home")}
->
-  <FontAwesome name="arrow-left" size={24} color="#ddd" />
-</TouchableOpacity>
+        style={styles.backButton}
+        onPress={() => navigation.navigate("Home")}
+      >
+        <FontAwesome name="arrow-left" size={24} color="#ddd" />
+      </TouchableOpacity>
 
       <View style={styles.container}>
-        <Text style={styles.title}> USUÁRIOS CADASTRADOS </Text>
+        <Text style={styles.title}>LISTA DE USUÁRIOS</Text>
         <FlatList
           data={usuarios}
           keyExtractor={(item) => item.id_user.toString()}
@@ -59,7 +59,6 @@ const ListaUsuarios = () => {
   );
 };
 
-
 const styles = StyleSheet.create({
   content: {
     flex: 1,
@@ -68,7 +67,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   container: {
-    backgroundColor: "#CC1E1E", // fundo vermelho
+    backgroundColor: "#D32F2F", // fundo vermelho intenso
     width: "90%",
     borderRadius: 10,
     paddingVertical: 20,
@@ -78,37 +77,43 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "white",
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
   },
   card: {
-    width: "200%", 
+    width: "100%",
     backgroundColor: "white",
     borderRadius: 10,
-    paddingVertical: 15,
+    paddingVertical: 13,
     paddingHorizontal: 10,
     marginBottom: 12,
-    alignSelf: "center", // garante que fique centralizada
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between", // Para ter a lixeira na direita
   },
   text: {
     fontSize: 16,
     color: "#333",
-    textAlign: "center", 
-     },
-     backButton: {
-  padding: 1,
-  alignSelf: "flex-start",
-  margin: 5,
-  borderRadius: 4,
-  paddingHorizontal: 20,
-  borderColor: "#ddd",
-  right: 20,
-},
-
+    textAlign: "center",
+    flex: 1, // Faz com que o texto ocupe o espaço restante
+  },
+  deleteButton: {
+    backgroundColor: "#D32F2F", // fundo vermelho para o botão de deletar
+    borderRadius: 50,
+    padding: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backButton: {
+    padding: 10,
+    alignSelf: "flex-start",
+    margin: 5,
+    borderRadius: 4,
+    paddingHorizontal: 20,
+    borderColor: "#ddd",
+  },
 });
-
-
 
 export default ListaUsuarios;
