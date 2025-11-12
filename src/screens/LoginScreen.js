@@ -100,10 +100,12 @@ export default function Login() {
           <TextInput
             style={styles.passwordInput}
             placeholder="Senha"
-            placeholderTextColor="#999" 
+            placeholderTextColor="#999"
             value={user.senha}
             secureTextEntry={user.showPassword}
             onChangeText={(value) => setUser({ ...user, senha: value })}
+            autoCorrect={false}
+            autoCapitalize="none"
           />
           <TouchableOpacity
             onPress={() =>
@@ -168,6 +170,7 @@ const styles = StyleSheet.create({
   passwordInput: {
     flex: 1,
     height: 40,
+    color: "#999",
   },
   loginButton: {
     width: "100%",

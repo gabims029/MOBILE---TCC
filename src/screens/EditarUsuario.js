@@ -43,6 +43,7 @@ export default function EditarUsuario() {
           style={styles.input}
           value={senha}
           secureTextEntry={true}
+          placeholderTextColor="#999"
           onChangeText={setSenha}
         />
 
@@ -62,12 +63,12 @@ export default function EditarUsuario() {
 const styles = StyleSheet.create({
   content: {
     flex: 1,
-    backgroundColor: "#FCECEC", // fundo rosa claro
+    backgroundColor: "#FCECEC", 
     alignItems: "center",
     justifyContent: "center",
   },
   card: {
-    backgroundColor: "#CC1E1E", // vermelho do card
+    backgroundColor: "#CC1E1E", 
     width: "90%",
     borderRadius: 20,
     padding: 20,
@@ -87,14 +88,14 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   input: {
-    backgroundColor: "white", // igual à imagem
+    backgroundColor: "white", 
     width: "100%",
     borderRadius: 15,
     padding: 10,
     marginTop: 5,
   },
   inputBloqueado: {
-    opacity: 0.7, // deixa levemente mais apagado pra mostrar que está bloqueado
+    opacity: 0.7, 
   },
   btnEditar: {
     backgroundColor: "white",

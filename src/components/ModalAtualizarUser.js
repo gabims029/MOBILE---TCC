@@ -46,29 +46,35 @@ const ModalEditarUsuario = ({ visible, onClose, userId, onUpdated }) => {
       Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
       return;
     }
- 
+
     // Se o usuário quiser trocar a senha, precisa informar a atual e a nova
     if ((senha && !novaSenha) || (!senha && novaSenha)) {
-      Alert.alert("Atenção", "Informe a senha atual e a nova senha para alterar.");
+      Alert.alert(
+        "Atenção",
+        "Informe a senha atual e a nova senha para alterar."
+      );
       return;
     }
- 
+
     try {
       await sheets.updateUser({
         id: userId,
         nome,
         email,
-        cpf,              
+        cpf,
         senhaAtual: senha,
-        senha: novaSenha,  
+        senha: novaSenha,
       });
- 
+
       Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
       onUpdated?.();
       onClose();
     } catch (error) {
       console.log(error.response?.data || error.message);
-      Alert.alert("Erro", error.response?.data?.error || "Não foi possível atualizar o perfil.");
+      Alert.alert(
+        "Erro",
+        error.response?.data?.error || "Não foi possível atualizar o perfil."
+      );
     }
   }
 
@@ -112,7 +118,9 @@ const ModalEditarUsuario = ({ visible, onClose, userId, onUpdated }) => {
             style={styles.input}
             value={senha}
             onChangeText={setSenha}
-            secureTextEntry
+            secureTextEntry={true}
+            autoCorrect={false}
+            autoCapitalize="none"
             placeholder="Senha atual"
             placeholderTextColor="#999"
           />
@@ -123,7 +131,9 @@ const ModalEditarUsuario = ({ visible, onClose, userId, onUpdated }) => {
             style={styles.input}
             value={novaSenha}
             onChangeText={setNovaSenha}
-            secureTextEntry
+            secureTextEntry={true}
+            autoCorrect={false}
+            autoCapitalize="none"
             placeholder="Nova senha"
             placeholderTextColor="#999"
           />
@@ -167,6 +177,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: "white",
+    color: "red",
     width: "100%",
     borderRadius: 20,
     paddingVertical: 10,

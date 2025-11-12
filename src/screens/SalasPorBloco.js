@@ -80,6 +80,7 @@ export default function SalasPorBloco() {
           <TextInput
             style={styles.searchInput}
             placeholder="Pesquisar"
+            placeholderTextColor="#999"
             value={pesquisa}
             onChangeText={setPesquisa}
           />
