@@ -4,7 +4,7 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
 const api = axios.create({
-  baseURL: "http://10.89.240.69:3000/api",
+  baseURL: "http://10.89.240.88:3000/api",
   headers: {
     accept: "application/json",
   },
@@ -43,6 +43,7 @@ const sheets = {
   getTodasReservas: () => api.get("/reserva"), // ✅ CORRIGIDO AQUI
   deleteReserva: (id) => api.delete(`/reserva/${id}`),
   getAllPeriodos: () => api.get("/periodo"),
+  getPeriodoStatus: (idSala, data) => api.get("/periodo/status", { params: { idSala: idSala, data: data,}}),
 };
 
 export default sheets;

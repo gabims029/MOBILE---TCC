@@ -71,8 +71,13 @@ export default function ReservaBloco({ route }) {
       try {
         setLoading(true);
         setErro(false);
-        const res = await api.getAllPeriodos();
-        setHorarios(res.data?.periodos || []);
+        const res = await api.getPeriodoStatus(sala.id_sala, dataInicio);
+        const todosHorarios = res.data?.periodos || [];
+        const horariosProcessados = todosHorarios.map((h) => ({
+          ...h,
+          reservado: h.status === "reservado",
+        }));
+        setHorarios(horariosProcessados);
       } catch (err) {
         console.log("Erro ao buscar horários:", err);
         setErro(true);
@@ -82,7 +87,8 @@ export default function ReservaBloco({ route }) {
       }
     };
     fetchHorarios();
-  }, [sala]);
+  }, [sala, dataInicio]);
+
 
   // Seleção de horários
   const toggleHorario = (h) => {
@@ -133,18 +139,33 @@ export default function ReservaBloco({ route }) {
     try {
       setLoading(true);
 
-      for (const id_periodo of horariosSelecionados) {
-        await api.createReserva({
-          fk_id_user: Number(idUsuario),
-          fk_id_sala: sala.id_sala,
-          fk_id_periodo: id_periodo,
-          dias: diasSelecionados,
-          data_inicio: dataInicio,
-          data_fim: dataFim,
-        });
-      }
 
-      Alert.alert("Sucesso", `Reserva realizada para sala ${sala.numero}`);
+      const response = await api.createReserva({
+        fk_id_user: Number(idUsuario),
+        fk_id_sala: sala.id_sala,
+        periodos: horariosSelecionados,
+        dias: diasSelecionados,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
+      });
+
+      const msgErros =
+        Array.isArray(response.data?.msgErros) && response.data.msgErros.length > 0
+          ? response.data.msgErros
+            .map(
+              (e, i) => `${i + 1}. ${e.erro || e.sqlMessage || JSON.stringify(e)}`
+            )
+            .join("\n")
+          : "";
+
+      const mensagemFinal = [
+        response.data?.message || `Reserva feita para sala ${sala?.numero}!`,
+        msgErros ? `\n\nErros:\n${msgErros}` : "",
+      ].join("");
+
+      Alert.alert(msgErros ? "Atenção" : "Sucesso", mensagemFinal);
+
+      // Reset igual ao front
       setHorariosSelecionados([]);
       setDiasSelecionados([]);
       setDataInicio(hojeISO);
@@ -152,8 +173,18 @@ export default function ReservaBloco({ route }) {
       setModalVisible(false);
     } catch (err) {
       console.log("Erro ao criar reserva:", err?.response?.data || err);
-      const msg = err?.response?.data?.error || "Erro ao processar a reserva";
-      Alert.alert("Erro", msg);
+      const errorData = err.response?.data;
+
+      const errorMessage =
+        (errorData?.msgErros &&
+          errorData.msgErros
+            .map((e, i) => `${i + 1}. ${e.erro || e.sqlMessage}`)
+            .join("\n")) ||
+        errorData?.error ||
+        errorData?.message ||
+        "Erro ao fazer a reserva. Tente novamente.";
+
+      Alert.alert("Erro", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -279,34 +310,35 @@ export default function ReservaBloco({ route }) {
                     borderRadius: 6,
                     minWidth: 100,
                     alignItems: "center",
-                    backgroundColor:
-                      h.status === "ocupado"
-                        ? "#e57373"
-                        : selecionado
+                    backgroundColor: h.reservado
+                      ? "#E56565" // vermelho se reservado
+                      : selecionado
                         ? "#fff"
-                        : "#81c784",
+                        : "#81c784", // verde se disponível
                     borderWidth: selecionado ? 2 : 0,
                     borderColor: selecionado ? "red" : "transparent",
                   }}
-                  disabled={h.status === "ocupado"}
+                  disabled={h.reservado}
                   onPress={() => toggleHorario(h)}
                 >
                   <Text
                     style={{
                       fontWeight: "bold",
-                      color:
-                        h.status === "ocupado"
-                          ? "#fff"
-                          : selecionado
-                          ? "#000"
-                          : "#fff",
+                      color: h.reservado ? "#fff" : "#000",
                     }}
                   >
                     {h.horario_inicio.slice(0, 5)} - {h.horario_fim.slice(0, 5)}
                   </Text>
+
+                  {h.reservado && (
+                    <Text style={{ fontSize: 12, color: "#222" }}>
+                      {h.usuario || "Desconhecido"}
+                    </Text>
+                  )}
                 </TouchableOpacity>
               );
             })}
+
           </View>
         )}
 
