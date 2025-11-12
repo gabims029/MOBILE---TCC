@@ -15,115 +15,70 @@ import ModalDeleteReserva from "../components/ModalDeleteReserva";
 
 export default function TodasReservas() {
   const [reservas, setReservas] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSala, setSelectedSala] = useState(null);
   const [reservaSelecionada, setReservaSelecionada] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // 🔄 Carrega todas as reservas
-  const carregarTodasReservas = async () => {
+  const carregarReservasPorData = async (dataSelecionada) => {
+    if (!dataSelecionada) return;
     try {
       setLoading(true);
-      const response = await api.getTodasReservas();
-      setReservas(response.data.reservas || {});
+      const response = await api.getReservasByData(dataSelecionada);
+      console.log("Reservas recebidas:", response.data.reservaBySala);
+      setReservas(response.data.reservaBySala || {});
     } catch (error) {
-      console.log("Erro ao carregar todas as reservas:", error);
+      console.log("Erro ao carregar reservas:", error);
       Alert.alert(
         "Erro",
-        error.response?.data?.error || "Não foi possível carregar as reservas."
+        error.response?.data?.error ||
+          "Não foi possível carregar as reservas para esta data."
       );
+      setReservas({});
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    carregarTodasReservas();
-  }, []);
-
   const handleDelete = async () => {
     setModalVisible(false);
-    await carregarTodasReservas();
+    if (selectedDate) {
+      await carregarReservasPorData(selectedDate);
+    }
   };
 
-  const abrirModal = (reserva, dia) => {
-    const periodo = reserva.periodos?.[0] || {};
+  const abrirModal = (reserva, nomeSala) => {
     setReservaSelecionada({
-      id_reserva: periodo.id_reserva,
-      nomeSala: reserva.nomeSalaDisplay,
-      descricao: reserva.descricaoDetalhe,
-      data: dia,
-      horarioInicio: periodo.horario_inicio,
-      horarioFim: periodo.horario_fim,
+      id_reserva: reserva.id_reserva,
+      nomeSala,
+      horarioInicio: reserva.horario_inicio,
+      horarioFim: reserva.horario_fim,
+      nomeUsuario: reserva.nomeUsuario,
     });
     setModalVisible(true);
   };
 
-  // 💳 Renderiza um cartão de reserva
-  const renderReservaCard = (reserva, dia, index) => {
-    const passou = reserva.periodos?.some((p) => p.passou);
-    const diasFormatados =
-      reserva.dias && reserva.dias.length > 0
-        ? Array.isArray(reserva.dias)
-          ? reserva.dias.join(", ")
-          : reserva.dias
-        : "—";
-
-    return (
-      <TouchableOpacity
-        // 🔐 key única e segura
-        key={`${reserva?.id_reserva || index}-${dia}`}
-        style={[styles.card, passou && styles.cardPassado]}
-        onPress={() => abrirModal(reserva, dia)}
-      >
-        <View style={styles.cardHeader}>
-          <Text style={styles.sala}>{reserva?.nomeSalaDisplay || "Sala ?"}</Text>
-        </View>
-
-        <View style={styles.cardBody}>
-          <Text style={styles.descricao}>
-            {reserva?.descricaoDetalhe || "Sem descrição"}
-          </Text>
-          <Text style={styles.diasReservados}>{diasFormatados}</Text>
-
-          {reserva?.periodos?.map((p, idx) => (
-            <View key={idx} style={styles.periodoBadge}>
-              <Text style={styles.periodoTexto}>
-                {p.horario_inicio} - {p.horario_fim}
-              </Text>
-            </View>
-          ))}
-          <Text style={styles.usuario}>
-            Usuário: {reserva?.nomeUsuario || "—"}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#B11010" />
-        <Text style={styles.loadingText}>Carregando reservas...</Text>
+  const renderReservaCard = (reserva, nomeSala, index) => (
+    <TouchableOpacity
+      key={index}
+      style={styles.card}
+      onPress={() => abrirModal(reserva, nomeSala)}
+    >
+      <View style={styles.cardHeader}>
+        <Text style={styles.sala}>{nomeSala}</Text>
       </View>
-    );
-  }
-
-  const reservasDoDia = selectedDate ? reservas[selectedDate] || [] : [];
-
-  // 🧩 Filtro de sala com fallback seguro
-  const reservasFiltradas =
-    selectedSala && reservasDoDia.length > 0
-      ? reservasDoDia.filter((r) =>
-          (r?.nomeSalaDisplay || "").toUpperCase().includes(selectedSala)
-        )
-      : reservasDoDia;
+      <View style={styles.cardBody}>
+        <Text style={styles.usuario}>{reserva.nomeUsuario}</Text>
+        <Text style={styles.periodoTexto}>
+          {reserva.horario_inicio.slice(0, 5)} - {reserva.horario_fim.slice(0, 5)}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Cabeçalho */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Todas as reservas</Text>
       </View>
@@ -134,6 +89,7 @@ export default function TodasReservas() {
           onDayPress={(day) => {
             console.log("Dia selecionado:", day.dateString);
             setSelectedDate(day.dateString);
+            carregarReservasPorData(day.dateString);
           }}
           markedDates={{
             [selectedDate]: { selected: true, selectedColor: "#B11010" },
@@ -146,7 +102,7 @@ export default function TodasReservas() {
         />
       </View>
 
-      {/* Filtro por sala */}
+      {/* Filtro por bloco */}
       <View style={styles.filtroContainer}>
         {["A", "B", "C", "D"].map((letra) => (
           <TouchableOpacity
@@ -172,26 +128,32 @@ export default function TodasReservas() {
       </View>
 
       {/* Lista de reservas */}
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {selectedDate ? (
-          reservasFiltradas.length > 0 ? (
-            <View style={styles.listaReservas}>
-              {reservasFiltradas.map((reserva, index) =>
-                renderReservaCard(reserva, selectedDate, index)
-              )}
-            </View>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#B11010" />
+          <Text style={styles.loadingText}>Carregando reservas...</Text>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.scroll}>
+          {selectedDate ? (
+            Object.entries(reservas)
+              .filter(([nomeSala]) =>
+                selectedSala ? nomeSala.startsWith(selectedSala) : true
+              )
+              .map(([nomeSala, reservasSala]) => (
+                <View key={nomeSala} style={styles.listaReservas}>
+                  {reservasSala.map((reserva, index) =>
+                    renderReservaCard(reserva, nomeSala, index)
+                  )}
+                </View>
+              ))
           ) : (
             <Text style={styles.emptyText}>
-              Nenhuma reserva para {selectedDate}
-              {selectedSala ? ` na sala ${selectedSala}` : ""}.
+              Selecione uma data para ver as reservas.
             </Text>
-          )
-        ) : (
-          <Text style={styles.emptyText}>
-            Selecione um dia no calendário para ver as reservas.
-          </Text>
-        )}
-      </ScrollView>
+          )}
+        </ScrollView>
+      )}
 
       <ModalDeleteReserva
         isVisible={modalVisible}
@@ -253,7 +215,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  cardPassado: { opacity: 0.6 },
   cardHeader: {
     backgroundColor: "#B11010",
     borderTopLeftRadius: 10,
@@ -263,29 +224,8 @@ const styles = StyleSheet.create({
   },
   cardBody: { padding: 10, alignItems: "center" },
   sala: { color: "#fff", fontSize: 18, fontWeight: "bold" },
-  descricao: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#333",
-    textAlign: "center",
-  },
-  periodoBadge: {
-    backgroundColor: "#FFD3D3",
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginBottom: 4,
-  },
+  usuario: { fontSize: 13, color: "#333", marginBottom: 4 },
   periodoTexto: { color: "#B11010", fontWeight: "600" },
-  diasReservados: {
-    marginTop: 6,
-    fontSize: 13,
-    color: "#B11010",
-    fontWeight: "600",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  usuario: { fontSize: 12, color: "#333", marginTop: 4 },
   emptyText: {
     textAlign: "center",
     fontSize: 16,

@@ -8,14 +8,11 @@ export default function AuthLoading({ navigation }) {
       const token = await SecureStore.getItemAsync("token");
 
       if (token) {
-        // Usuário autenticado → vai pra tela principal
         navigation.replace("Home");
       } else {
-        // Sem token → vai pra Home (onde abre o modal de login)
         navigation.replace("Login");
       }
     };
-
     checkAuth();
   }, []);
 
