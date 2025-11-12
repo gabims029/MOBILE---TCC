@@ -109,7 +109,7 @@ export default function CriarSala() {
         </TouchableOpacity>
 
         <TouchableOpacity
-      onPress={() => navigation.navigate("ListaSalas")}
+      onPress={() => navigation.navigate("ListSalas")}
       style={styles.cadastrarButton}
     >
       <Text style={styles.cadastrarButtonText}>Listar Salas</Text>
@@ -190,6 +190,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 1,
     borderColor: "#ddd",
     right: 20,
-    top: -120,
+    top: -90,
   },
 });

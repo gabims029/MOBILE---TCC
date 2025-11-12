@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   StyleSheet,
   Image,
 } from "react-native";
@@ -14,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
 import { FontAwesome } from "@expo/vector-icons";
+import { Snackbar } from "react-native-paper";
 
 export default function Cadastro() {
   const [user, setUser] = useState({
@@ -25,27 +25,39 @@ export default function Cadastro() {
     showPassord: true,
   });
 
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarColor, setSnackbarColor] = useState("#CC1E1E");
+
   const navigation = useNavigation();
 
   async function handleCadastro() {
-    await api.postCadastro(user).then(
-      (response) => {
-        Alert.alert("OK", response.data.message);
+    try {
+      const response = await api.postCadastro(user);
+      setSnackbarMessage(response.data.message);
+      setSnackbarColor("#4CAF50"); // verde para sucesso
+      setSnackbarVisible(true);
+      setTimeout(() => {
+        setSnackbarVisible(false);
         navigation.navigate("Home");
-      },
-      (error) => {
-        Alert.alert("Erro", error.response.data.error);
-      }
-    );
+      }, 2000);
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.error || "Erro ao realizar o cadastro.";
+      setSnackbarMessage(errorMessage);
+      setSnackbarColor("#CC1E1E"); // vermelho para erro
+      setSnackbarVisible(true);
+    }
   }
-  return (      
+
+  return (
     <View style={styles.content}>
       <TouchableOpacity
-  style={styles.backButton}
-  onPress={() => navigation.navigate("Home")}
->
-  <FontAwesome name="arrow-left" size={24} color="#ddd" />
-</TouchableOpacity>
+        style={styles.backButton}
+        onPress={() => navigation.navigate("Home")}
+      >
+        <FontAwesome name="arrow-left" size={24} color="#ddd" />
+      </TouchableOpacity>
 
       <View style={styles.cadastroCard}>
         <View style={styles.logoContainer}>
@@ -122,95 +134,116 @@ export default function Cadastro() {
           <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Snackbar personalizado */}
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={2000}
+        style={[styles.snackbar, { backgroundColor: snackbarColor }]}
+      >
+        <Text style={styles.snackbarText}>{snackbarMessage}</Text>
+      </Snackbar>
     </View>
-    );
-  }
-  
-  const styles = StyleSheet.create({
-    content: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 20,
-    },
-    cadastroCard: {
-      backgroundColor: "#CC1E1E",
-      width: "90%",
-      borderRadius: 10,
-      padding: 20,
-      alignItems: "center",
-    },
-    logoContainer: {
-      justifyContent: "center",
-      alignItems: "center",
-      marginVertical: 15,
-      width: "100%",
-    },
-    logoWrapper: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      width: "100%",
-    },
-    input: {
-      width: "100%",
-      height: 45,
-      backgroundColor: "white",
-      borderRadius: 25,
-      marginVertical: 8,
-      paddingHorizontal: 15,
-    },
-    cadastrarButton: {
-      width: "100%",
-      height: 45,
-      backgroundColor: "#FF3F3F",
-      borderRadius: 25,
-      marginTop: 15,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    cadastrarButtonText: {
-      color: "white",
-      fontSize: 16,
-      fontWeight: "bold",
-    },
-    passwordContainer: {
-      width: "100%",
-      height: 45,
-      backgroundColor: "white",
-      borderRadius: 25,
-      marginVertical: 8,
-      paddingHorizontal: 15,
-      flexDirection: "row",
-      alignItems: "center",
-      paddingRight: 10,
-    },
-    passwordInput: {
-      flex: 1,
-      height: 40,
-    },
-    pickerContainer: {
-      width: "100%",
-      height: 45,
-      backgroundColor: "white",
-      borderRadius: 25,
-      marginVertical: 8,
-      paddingHorizontal: 15,
-      justifyContent: "center",
-    },
-    picker: {
-      width: "100%",
-      height: "130%",
-      color: "#888",
-    },
-   backButton: {
-  padding: 1,
-  alignSelf: "flex-start",
-  margin: 5,
-  borderRadius: 4,
-  paddingHorizontal: 2,
-  borderColor: "#ddd",
-  right: 20,
-   top: -85, 
-},
+  );
+}
+
+const styles = StyleSheet.create({
+  content: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  cadastroCard: {
+    backgroundColor: "#CC1E1E",
+    width: "90%",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+  },
+  logoContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 15,
+    width: "100%",
+  },
+  logoWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  input: {
+    width: "100%",
+    height: 45,
+    backgroundColor: "white",
+    borderRadius: 25,
+    marginVertical: 8,
+    paddingHorizontal: 15,
+  },
+  cadastrarButton: {
+    width: "100%",
+    height: 45,
+    backgroundColor: "#FF3F3F",
+    borderRadius: 25,
+    marginTop: 15,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cadastrarButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  passwordContainer: {
+    width: "100%",
+    height: 45,
+    backgroundColor: "white",
+    borderRadius: 25,
+    marginVertical: 8,
+    paddingHorizontal: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: 10,
+  },
+  passwordInput: {
+    flex: 1,
+    height: 40,
+  },
+  pickerContainer: {
+    width: "100%",
+    height: 45,
+    backgroundColor: "white",
+    borderRadius: 25,
+    marginVertical: 8,
+    paddingHorizontal: 15,
+    justifyContent: "center",
+  },
+  picker: {
+    width: "100%",
+    height: "130%",
+    color: "#888",
+  },
+  backButton: {
+    padding: 1,
+    alignSelf: "flex-start",
+    margin: 5,
+    borderRadius: 4,
+    paddingHorizontal: 2,
+    borderColor: "#ddd",
+    right: 20,
+    top: -85,
+  },
+  snackbar: {
+    borderRadius: 10,
+    marginBottom: 30,
+    alignSelf: "center",
+    width: "90%",
+  },
+  snackbarText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "500",
+  },
 });

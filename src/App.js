@@ -4,7 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Login from "./screens/LoginScreen";
 import Cadastro from "./screens/CadastroScreen";
 import Home from "./screens/Home";
-
+import ListSalas from "./screens/ListSalas"; 
 import ReservaBloco from "./screens/ReservaBloco";
 import MinhasReservas from "./screens/MinhasReservas";
 import Perfil from "./screens/Perfil";
@@ -126,6 +126,14 @@ export default function App() {
           {(props) => (
             <Layout>
               <PerfilAdmin {...props} />
+            </Layout>
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="ListSalas">
+          {(props) => (
+            <Layout>
+              <ListSalas {...props} />
             </Layout>
           )}
         </Stack.Screen>

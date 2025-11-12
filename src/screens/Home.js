@@ -6,11 +6,11 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
-  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import { Calendar } from "react-native-calendars";
+import { Snackbar } from "react-native-paper";
 
 export default function Home() {
   const navigation = useNavigation();
@@ -18,21 +18,49 @@ export default function Home() {
   const [blocoSelecionado, setBlocoSelecionado] = useState(null);
   const [dataSelecionada, setDataSelecionada] = useState(null);
 
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarColor, setSnackbarColor] = useState("#CC1E1E");
+
   useEffect(() => {
     getSecureData();
   }, []);
 
   const getSecureData = async () => {
-    const value = await SecureStore.getItemAsync("id");
-    setIdUsuario(value);
+    try {
+      const value = await SecureStore.getItemAsync("id");
+      if (!value) {
+        setSnackbarMessage("Usuário não identificado. Faça login novamente.");
+        setSnackbarColor("#CC1E1E");
+        setSnackbarVisible(true);
+      }
+      setIdUsuario(value);
+    } catch (error) {
+      setSnackbarMessage("Erro ao recuperar dados do usuário.");
+      setSnackbarColor("#CC1E1E");
+      setSnackbarVisible(true);
+    }
   };
 
   const handleBlocoSelect = (bloco) => {
+    if (!idUsuario) {
+      setSnackbarMessage("Você precisa estar logado para acessar as salas.");
+      setSnackbarColor("#CC1E1E");
+      setSnackbarVisible(true);
+      return;
+    }
     setBlocoSelecionado(bloco);
     navigation.navigate("SalasPorBloco", { bloco, idUsuario });
   };
 
   const handleDateSelect = (date) => {
+    if (!idUsuario) {
+      setSnackbarMessage("Faça login antes de visualizar as salas.");
+      setSnackbarColor("#CC1E1E");
+      setSnackbarVisible(true);
+      return;
+    }
+
     navigation.navigate("SalasPorData", {
       dataSelecionada: date.toISOString().split("T")[0],
     });
@@ -46,7 +74,9 @@ export default function Home() {
         <Text style={styles.welcomeTextBold}>RESERVAS SENAI</Text>
 
         {/* Texto de instrução */}
-        <Text style={styles.subTitle}>Selecione um bloco para fazer sua reserva:</Text>
+        <Text style={styles.subTitle}>
+          Selecione um bloco para fazer sua reserva:
+        </Text>
 
         {/* Botões dos blocos */}
         <View style={styles.roomsRow}>
@@ -100,6 +130,16 @@ export default function Home() {
           />
         </View>
       </ScrollView>
+
+      {/* Snackbar personalizado */}
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={2500}
+        style={[styles.snackbar, { backgroundColor: snackbarColor }]}
+      >
+        <Text style={styles.snackbarText}>{snackbarMessage}</Text>
+      </Snackbar>
     </SafeAreaView>
   );
 }
@@ -107,44 +147,12 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFECEC", // fundo rosado mais suave
+    backgroundColor: "#FFECEC",
   },
   scrollContent: {
     alignItems: "center",
     paddingBottom: 40,
   },
-
-  // Cabeçalho
-  header: {
-    width: "100%",
-    backgroundColor: "#CC1E1E",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-  },
-  profileIcon: {
-    width: 35,
-    height: 35,
-    borderRadius: 20,
-    backgroundColor: "#FFF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  profileCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: "#CC1E1E",
-  },
-  headerTitle: {
-    color: "#FFF",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-
-  // Textos principais
   welcomeText: {
     fontSize: 19,
     fontWeight: "bold",
@@ -165,8 +173,6 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     textAlign: "center",
   },
-
-  // Blocos
   roomsRow: {
     flexDirection: "row",
     justifyContent: "space-evenly",
@@ -189,8 +195,6 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
   },
-
-  // Calendário
   calendarTitle: {
     fontSize: 15,
     color: "#000",
@@ -204,5 +208,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#CC1E1E",
     padding: 10,
+  },
+  snackbar: {
+    borderRadius: 10,
+    marginBottom: 30,
+    alignSelf: "center",
+    width: "90%",
+  },
+  snackbarText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "500",
   },
 });

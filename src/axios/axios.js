@@ -1,11 +1,9 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-
 const api = axios.create({
   baseURL: "http://10.89.240.69:3000/api",
   headers: { accept: "application/json" },
 });
-
 api.interceptors.request.use(
   async (config) => {
     const token = await SecureStore.getItemAsync("token");
@@ -32,12 +30,13 @@ const sheets = {
   getSalasPorBloco: (bloco) => api.get(`/sala/${bloco}`),
   getHorarios: ({ id_sala, data }) =>
     api.get(`/reserva/horarios/${id_sala}/${data}`),
+  deleteSala: (numero) => api.delete(`/sala/${numero}`),
 
   // Reservas
   createReserva: (data) => api.post("/reserva", data),
   confirmarReserva: (reserva) => api.post("/schedule", reserva),
   getSchedulesByUserID: (id) => api.get(`/reserva/usuario/${id}`),
-  getReservasByData: (data) => api.get(`/reservas/data/${data}`), // ✅ mesma rota do front
+  getReservasByData: (data) => api.get(`/reservas/data/${data}`),
   deleteReserva: (id) => api.delete(`/reserva/${id}`),
   getAllPeriodos: () => api.get("/periodo"),
   getPeriodoStatus: (idSala, data) =>

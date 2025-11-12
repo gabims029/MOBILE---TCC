@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   StyleSheet,
   Image,
 } from "react-native";
@@ -13,6 +12,7 @@ import Logo from "../../assets/logosenai.png";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
+import { Snackbar } from "react-native-paper";
 
 export default function Login() {
   const [user, setUser] = useState({
@@ -21,7 +21,18 @@ export default function Login() {
     showPassword: true,
   });
 
+  const [snackbar, setSnackbar] = useState({
+    visible: false,
+    message: "",
+    color: "#fff",
+    backgroundColor: "#CC1E1E",
+  });
+
   const navigation = useNavigation();
+
+  const showSnackbar = (message, backgroundColor = "#CC1E1E") => {
+    setSnackbar({ visible: true, message, backgroundColor });
+  };
 
   const saveInfos = async (token, id_user, tipo) => {
     try {
@@ -30,25 +41,38 @@ export default function Login() {
       await SecureStore.setItemAsync("tipo", tipo.toLowerCase());
     } catch (error) {
       console.log("Erro ao salvar no SecureStore:", error);
+      showSnackbar("Erro ao salvar informações localmente.");
     }
   };
 
- const handleLogin = async () => {
-  try {
-    const response = await api.postLogin({ email: user.email, senha: user.senha });
+  const handleLogin = async () => {
+    if (!user.email || !user.senha) {
+      showSnackbar("Preencha todos os campos!");
+      return;
+    }
 
-    const { token, user: userObj } = response.data;
-    const { id_user, tipo } = userObj;
+    try {
+      const response = await api.postLogin({
+        email: user.email,
+        senha: user.senha,
+      });
 
-    await saveInfos(token, id_user, tipo);
+      const { token, user: userObj } = response.data;
+      const { id_user, tipo } = userObj;
 
-    Alert.alert("Sucesso", response.data.message);
-    navigation.navigate("Home");
-  } catch (error) {
-    Alert.alert("Erro", error.response?.data?.error || "Erro ao conectar com o servidor.");
-  }
-};
+      await saveInfos(token, id_user, tipo);
 
+      showSnackbar("Login realizado com sucesso!", "#28a745"); // verde sucesso
+      setTimeout(() => {
+        navigation.navigate("Home");
+      }, 1200);
+    } catch (error) {
+      showSnackbar(
+        error.response?.data?.error ||
+          "Erro ao conectar com o servidor. Tente novamente."
+      );
+    }
+  };
 
   return (
     <View style={styles.content}>
@@ -67,10 +91,8 @@ export default function Login() {
             placeholder="Email"
             value={user.email}
             autoCapitalize="none"
-            onChangeText={(value) => {
-              setUser({ ...user, email: value });
-            }}
-          ></TextInput>
+            onChangeText={(value) => setUser({ ...user, email: value })}
+          />
         </View>
 
         <View style={styles.passwordContainer}>
@@ -79,10 +101,8 @@ export default function Login() {
             placeholder="Senha"
             value={user.senha}
             secureTextEntry={user.showPassword}
-            onChangeText={(value) => {
-              setUser({ ...user, senha: value });
-            }}
-          ></TextInput>
+            onChangeText={(value) => setUser({ ...user, senha: value })}
+          />
           <TouchableOpacity
             onPress={() =>
               setUser({ ...user, showPassword: !user.showPassword })
@@ -100,15 +120,20 @@ export default function Login() {
           <Text style={styles.loginButtonText}> Entrar </Text>
         </TouchableOpacity>
       </View>
+
+      <Snackbar
+        visible={snackbar.visible}
+        onDismiss={() => setSnackbar({ ...snackbar, visible: false })}
+        duration={2500}
+        style={[styles.snackbar, { backgroundColor: snackbar.backgroundColor }]}
+      >
+        <Text style={styles.snackbarText}>{snackbar.message}</Text>
+      </Snackbar>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  logo: {
-    width: 270,
-    height: 150,
-  },
   content: {
     flex: 1,
     alignItems: "center",
@@ -127,20 +152,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 20,
   },
-  logoText: {
-    color: "white",
-    fontSize: 40,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  input: {
-    width: "100%",
-    height: 45,
-    backgroundColor: "white",
-    borderRadius: 25,
-    marginVertical: 8,
-    paddingHorizontal: 15,
-  },
   passwordContainer: {
     width: "100%",
     height: 45,
@@ -150,7 +161,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     flexDirection: "row",
     alignItems: "center",
-    width: "100%",
     paddingRight: 10,
   },
   passwordInput: {
@@ -171,18 +181,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  signupContainer: {
-    flexDirection: "row",
-    marginTop: 15,
-    alignItems: "center",
+  snackbar: {
+    position: "absolute",
+    bottom: 20,
+    borderRadius: 10,
+    alignSelf: "center",
+    width: "90%",
+    elevation: 6,
   },
-  signupText: {
-    color: "white",
-    fontSize: 14,
-  },
-  signupLinkText: {
-    color: "#FF3F3F",
-    fontSize: 14,
-    fontWeight: "bold",
+  snackbarText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "600",
   },
 });
