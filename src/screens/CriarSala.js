@@ -65,6 +65,7 @@ export default function CriarSala() {
         <TextInput
           style={styles.input}
           placeholder="Sala"
+          placeholderTextColor="#999" 
           value={sala.numero}
           keyboardType="numeric"
           onChangeText={(value) => setSala({ ...sala, numero: value })}
@@ -73,6 +74,7 @@ export default function CriarSala() {
         <TextInput
           style={styles.input}
           placeholder="Descrição"
+          placeholderTextColor="#999" 
           value={sala.descricao}
           onChangeText={(value) => setSala({ ...sala, descricao: value })}
         />
@@ -80,6 +82,7 @@ export default function CriarSala() {
         <TextInput
           style={styles.input}
           placeholder="Capacidade"
+          placeholderTextColor="#999" 
           value={sala.capacidade}
           keyboardType="numeric"
           onChangeText={(value) => setSala({ ...sala, capacidade: value })}

@@ -89,6 +89,7 @@ export default function Login() {
           <TextInput
             style={styles.passwordInput}
             placeholder="Email"
+            placeholderTextColor="#999"
             value={user.email}
             autoCapitalize="none"
             onChangeText={(value) => setUser({ ...user, email: value })}
@@ -99,6 +100,7 @@ export default function Login() {
           <TextInput
             style={styles.passwordInput}
             placeholder="Senha"
+            placeholderTextColor="#999" 
             value={user.senha}
             secureTextEntry={user.showPassword}
             onChangeText={(value) => setUser({ ...user, senha: value })}

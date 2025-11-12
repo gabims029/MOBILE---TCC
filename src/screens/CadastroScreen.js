@@ -73,6 +73,7 @@ export default function Cadastro() {
         <TextInput
           style={styles.input}
           placeholder="Nome"
+          placeholderTextColor="#999" 
           value={user.nome}
           onChangeText={(value) => setUser({ ...user, nome: value })}
         />
@@ -80,6 +81,7 @@ export default function Cadastro() {
         <TextInput
           style={styles.input}
           placeholder="E-mail"
+          placeholderTextColor="#999" 
           value={user.email}
           autoCapitalize="none"
           onChangeText={(value) => setUser({ ...user, email: value })}
@@ -88,6 +90,7 @@ export default function Cadastro() {
         <TextInput
           style={styles.input}
           placeholder="CPF"
+          placeholderTextColor="#999" 
           value={user.cpf}
           maxLength={11}
           onChangeText={(value) => setUser({ ...user, cpf: value })}
@@ -97,6 +100,7 @@ export default function Cadastro() {
           <TextInput
             style={styles.passwordInput}
             placeholder="Senha"
+            placeholderTextColor="#999" 
             value={user.senha}
             secureTextEntry={user.showPassord}
             onChangeText={(value) => setUser({ ...user, senha: value })}

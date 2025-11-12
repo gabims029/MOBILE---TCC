@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 const api = axios.create({
-  baseURL: "http://10.89.240.69:3000/api",
+  baseURL: "https://tcc.southafricanorth.cloudapp.azure.com:3000/api",
   headers: { accept: "application/json" },
 });
 api.interceptors.request.use(

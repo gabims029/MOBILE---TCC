@@ -88,6 +88,7 @@ const Perfil = () => {
           <TextInput
             style={styles.input}
             placeholder="*******"
+            placeholderTextColor="#999" 
             secureTextEntry
             editable={false}
           />
