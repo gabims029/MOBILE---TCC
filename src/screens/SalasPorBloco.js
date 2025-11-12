@@ -117,13 +117,13 @@ export default function SalasPorBloco() {
                 onPress={() => handleSalaSelect(sala)}
               >
                 <View style={styles.roomHeader}>
-                  <Text style={styles.roomTitle}>{sala.descricao}</Text>
+                  <Text style={styles.roomTitle}>{sala.numero}</Text>
                 </View>
+                <Text style={styles.roomTitle2}>{sala.descricao}</Text>
                 <Text style={styles.roomTitle2}>Bloco: {sala.bloco}</Text>
                 <Text style={styles.roomTitle2}>
                   Capacidade: {sala.capacidade}
                 </Text>
-                <Text style={styles.roomTitle2}>N° da sala: {sala.numero}</Text>
               </TouchableOpacity>
             ))
           ) : (
